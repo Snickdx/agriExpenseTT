@@ -36,7 +36,7 @@ public class CountryContract {
 		{"Trinidad and Tobago","county"},
 		{"Turks & Caicos Islands", "island"}
 	};
-	
+
 	public static abstract class CountryEntry implements BaseColumns{
 		public static final String TABLE_NAME = "countries";
 		public static final String COLUMN_NAME_COUNTRY = "country ";
