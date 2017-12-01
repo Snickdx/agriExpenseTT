@@ -71,6 +71,18 @@ public abstract class SQLiteDBModel implements DBModel, BaseColumns {
     }
 
     @Override
+    public Cursor getByName(String name){
+        SQLiteDatabase db = getDB();
+        return db.rawQuery("select "+getID()+" from "+getTable()+" where name ='"+name+"';", null);
+    }
+
+    @Override
+    public Cursor existsByName(String name){
+        SQLiteDatabase db = getDB();
+        return db.rawQuery("SELECT name from " + getTable()+  " WHERE LOWER( name ) LIKE '%"+name+"%';", null);
+    }
+
+    @Override
     public DBModel get() {
 
         return null;

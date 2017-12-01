@@ -55,9 +55,4 @@ public class ResourceContract extends Contract{
 	}
 
 
-	public static abstract class ResourceEntry implements BaseColumns{
-		public static final String TABLE_NAME = "resources";
-		public static final String RESOURCES_NAME = "name";
-		public static final String RESOURCES_TYPE = "type";
-	}
 }

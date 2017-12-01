@@ -172,9 +172,9 @@ public class DbQuery {
 	public static List<String> getResources(SQLiteDatabase db, DbHelper dbh, String type,ArrayList<String> list){
 		String code;
 		if(type!=null)
-			code="select name from "+ ResourceContract.ResourceEntry.TABLE_NAME+" where "+ ResourceContract.ResourceEntry.RESOURCES_TYPE+"='"+type+"';";
+			code="select name from "+ ResourceContract.table+" where type ='"+type+"';";
 		else
-			code="select name from "+ ResourceContract.ResourceEntry.TABLE_NAME;
+			code="select name from "+ ResourceContract.table;
 		Cursor cursor=db.rawQuery(code, null);
 		if(cursor.getCount()<1)
 			return list;
@@ -186,10 +186,13 @@ public class DbQuery {
 	}
 
     public static boolean resourceExistByName(SQLiteDatabase db, DbHelper dbh, String name){
-        name = name.toLowerCase();
-        String code = "SELECT name from " + ResourceContract.ResourceEntry.TABLE_NAME +  " WHERE LOWER(" + ResourceContract.ResourceEntry.RESOURCES_NAME + ") LIKE '%"+name+"%';";
+//        name = name.toLowerCase();
+//        String code = "SELECT name from " + ResourceContract.ResourceEntry.TABLE_NAME +  " WHERE LOWER(" + ResourceContract.ResourceEntry.RESOURCES_NAME + ") LIKE '%"+name+"%';";
+//        Cursor cursor = db.rawQuery(code, null);
 
-        Cursor cursor = db.rawQuery(code, null);
+        ResourceContract r = new ResourceContract(db);
+        Cursor cursor = r.getByName(name);
+
         if (cursor.getCount() >= 1){
             while(cursor.moveToNext()){
                 String res = cursor.getString(cursor.getColumnIndex("name"));
@@ -200,12 +203,16 @@ public class DbQuery {
     }
 
     public static int getNameResourceId(SQLiteDatabase db,DbHelper dbh,String name){
-		String code="select "+ ResourceContract.ResourceEntry._ID+" from "+ ResourceContract.ResourceEntry.TABLE_NAME+" where "+ ResourceContract.ResourceEntry.RESOURCES_NAME+"='"+name+"';";
-		Cursor cursor=db.rawQuery(code, null);
+//		String code="select "+ ResourceContract.ResourceEntry._ID+" from "+ ResourceContract.ResourceEntry.TABLE_NAME+" where "+ ResourceContract.ResourceEntry.RESOURCES_NAME+"='"+name+"';";
+//		Cursor cursor=db.rawQuery(code, null);
+
+        ResourceContract r = new ResourceContract(db);
+        Cursor cursor = r.getByName(name);
+
 		if(cursor.getCount()<1)
 			return -1;
 		cursor.moveToFirst();
-        int res = cursor.getInt(cursor.getColumnIndex(ResourceContract.ResourceEntry._ID));
+        int res = cursor.getInt(cursor.getColumnIndex(ResourceContract._ID));
         cursor.close();
 		return res;
 	}
@@ -239,7 +246,7 @@ public class DbQuery {
 	}
 	
 	public static String findResourceName(SQLiteDatabase db, DbHelper dbh, int id){
-		String code="select name from "+ ResourceContract.ResourceEntry.TABLE_NAME+" where "+ ResourceContract.ResourceEntry._ID +"="+id+";";
+		String code="select name from "+ ResourceContract.table+" where "+ ResourceContract._ID +"="+id+";";
 		String res = null;
         Cursor cursor=db.rawQuery(code,null);
 		if(cursor.getCount()>0){
@@ -436,7 +443,7 @@ public class DbQuery {
             db.delete(table, ResourcePurchaseEntry._ID+"="+id, null);
         }
 		else if(table.equals(r.getTable())){
-            db.delete(table, ResourceContract.ResourceEntry._ID+"="+id, null);
+            db.delete(table, ResourceContract._ID+"="+id, null);
         }
 		else if(table.equals(CycleResourceEntry.TABLE_NAME))
 		{

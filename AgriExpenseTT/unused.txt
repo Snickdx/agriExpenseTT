@@ -15471,7 +15471,6 @@ uwi.dcit.AgriExpenseTT.models.LocalResourcePurchase:
 uwi.dcit.AgriExpenseTT.models.RedoLogContract
 uwi.dcit.AgriExpenseTT.models.RedoLogContract$RedoLogEntry
 uwi.dcit.AgriExpenseTT.models.ResourceContract
-uwi.dcit.AgriExpenseTT.models.ResourceContract$ResourceEntry
 uwi.dcit.AgriExpenseTT.models.ResourcePurchaseContract
 uwi.dcit.AgriExpenseTT.models.ResourcePurchaseContract$ResourcePurchaseEntry
 uwi.dcit.AgriExpenseTT.models.TransactionLogContract

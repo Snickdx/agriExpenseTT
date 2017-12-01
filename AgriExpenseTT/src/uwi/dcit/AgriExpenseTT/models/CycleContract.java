@@ -21,7 +21,7 @@ public class CycleContract {
 			+CycleEntry.CROPCYCLE_COSTPER + REAL_TYPE + COMMA_SEP
 			+CycleEntry.CROPCYCLE_RESOURCE + TEXT_TYPE + COMMA_SEP
 			+CycleEntry.CROPCYCLE_CLOSED + TEXT_TYPE + COMMA_SEP
-			+"foreign key("+CycleEntry.CROPCYCLE_CROPID+") references "+ ResourceContract.ResourceEntry.TABLE_NAME+"("+ ResourceContract.ResourceEntry._ID+"));";
+			+"foreign key("+CycleEntry.CROPCYCLE_CROPID+") references "+ ResourceContract.table+"("+ ResourceContract._ID+"));";
 		
 	
 	public static final String SQL_DELETE_CYCLE = "DROP TABLE IF EXISTS " + CycleEntry.TABLE_NAME;
