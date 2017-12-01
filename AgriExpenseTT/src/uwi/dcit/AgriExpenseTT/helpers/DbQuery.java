@@ -423,6 +423,9 @@ public class DbQuery {
 
 	//can be used for all tables so far
 	public static void deleteRecord(SQLiteDatabase db,DbHelper dbh,String table,int id)throws Exception{
+        ResourceContract r = new ResourceContract(db);
+
+
         if(table.equals(UpdateAccountContract.UpdateAccountEntry.TABLE_NAME)){
             db.delete(table, UpdateAccountContract.UpdateAccountEntry._ID+""+id, null);
         }
@@ -432,7 +435,7 @@ public class DbQuery {
 		else if(table.equals(ResourcePurchaseEntry.TABLE_NAME)){
             db.delete(table, ResourcePurchaseEntry._ID+"="+id, null);
         }
-		else if(table.equals(ResourceContract.ResourceEntry.TABLE_NAME)){
+		else if(table.equals(r.getTable())){
             db.delete(table, ResourceContract.ResourceEntry._ID+"="+id, null);
         }
 		else if(table.equals(CycleResourceEntry.TABLE_NAME))

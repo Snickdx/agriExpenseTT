@@ -127,7 +127,10 @@ public class DbHelper extends SQLiteOpenHelper{
 	}
 	
 	private void createBackup(SQLiteDatabase db){
-		db.execSQL("ALTER TABLE " + ResourceContract.ResourceEntry.TABLE_NAME + " RENAME TO " + ResourceContract.ResourceEntry.TABLE_NAME + "_orig");
+//		db.execSQL("ALTER TABLE " + ResourceContract.ResourceEntry.TABLE_NAME + " RENAME TO " + ResourceContract.ResourceEntry.TABLE_NAME + "_orig");
+        ResourceContract r = new ResourceContract(db);
+        r.backup();
+
 		db.execSQL("ALTER TABLE " + CycleContract.CycleEntry.TABLE_NAME + " RENAME TO " + CycleContract.CycleEntry.TABLE_NAME + "_orig");
 		db.execSQL("ALTER TABLE " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + " RENAME TO " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + "_orig");
 		db.execSQL("ALTER TABLE " + CycleResourceEntry.TABLE_NAME + " RENAME TO " + CycleResourceEntry.TABLE_NAME + "_orig");
@@ -159,7 +162,8 @@ public class DbHelper extends SQLiteOpenHelper{
 	}
 
 	private void dropBackups(SQLiteDatabase db){
-		db.execSQL("DROP TABLE IF EXISTS " + ResourceContract.ResourceEntry.TABLE_NAME + "_orig");
+		ResourceContract r = new ResourceContract(db);
+		r.deleteBackup();
 		db.execSQL("DROP TABLE IF EXISTS " + CycleContract.CycleEntry.TABLE_NAME + "_orig");
 		db.execSQL("DROP TABLE IF EXISTS " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + "_orig");
 		db.execSQL("DROP TABLE IF EXISTS " + CycleResourceEntry.TABLE_NAME + "_orig");
@@ -193,7 +197,10 @@ public class DbHelper extends SQLiteOpenHelper{
 		db.execSQL(CycleResourceContract.SQL_DELETE_CYCLE_RESOURCE);
 		db.execSQL(ResourcePurchaseContract.SQL_DELETE_RESOURCE_PURCHASE);
 		db.execSQL(CycleContract.SQL_DELETE_CYCLE);
-		db.execSQL(ResourceContract.SQL_DELETE_RESOURCE);
+
+//		db.execSQL(ResourceContract.SQL_DELETE_RESOURCE);
+        ResourceContract r = new ResourceContract(db);
+        r.flush();
 		db.execSQL(CloudKeyContract.SQL_DELETE_CLOUD_KEY);
 		db.execSQL(RedoLogContract.SQL_DELETE_REDO_LOG);
 		db.execSQL(TransactionLogContract.SQL_DELETE_TRANSACTION_LOG);
@@ -229,9 +236,9 @@ public class DbHelper extends SQLiteOpenHelper{
 	} 
 	
 	private void createResources(SQLiteDatabase db) {
-		ResourceContract r = new ResourceContract(db);
+        //db.execSQL(ResourceContract.SQL_CREATE_RESOURCE);
+	    ResourceContract r = new ResourceContract(db);
 		r.init();
-		//db.execSQL(ResourceContract.SQL_CREATE_RESOURCE);
 	}
 	
 	private void createTransactionLog(SQLiteDatabase db) {db.execSQL(TransactionLogContract.SQL_CREATE_TRANSACTION_LOG);}

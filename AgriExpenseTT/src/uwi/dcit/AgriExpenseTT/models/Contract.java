@@ -1,12 +1,14 @@
 package uwi.dcit.AgriExpenseTT.models;
 
 
-import uwi.dcit.AgriExpenseTT.models.SQLiteDBModel;
+import android.database.sqlite.SQLiteDatabase;
+
 
 public abstract class Contract extends SQLiteDBModel{
 
-    protected String category;
     protected String name;
-
+    protected String type;
+    protected String table;
+    protected SQLiteDatabase db;
 
 }

@@ -30,6 +30,18 @@ public abstract class SQLiteDBModel implements DBModel, BaseColumns {
     }
 
     @Override
+    public void backup(){
+        SQLiteDatabase db = getDB();
+        db.execSQL("ALTER TABLE " + getTable() + " RENAME TO " +getTable()+ "_orig");
+    }
+
+    @Override
+    public void deleteBackup(){
+        SQLiteDatabase db = getDB();
+        db.execSQL("DROP TABLE IF EXISTS " +getTable()+ "_orig");
+    }
+
+    @Override
     public int insert() {
         SQLiteDatabase db = getDB();
         db.insert(getTable(), null, getContentValues());
@@ -37,8 +49,17 @@ public abstract class SQLiteDBModel implements DBModel, BaseColumns {
     }
 
     @Override
-    public int delete() {
+    public int delete(int rId) {
+        SQLiteDatabase db = getDB();
+        db.delete(getName(), getID()+"="+rId, null);
         return 0;
+    }
+
+    @Override
+    public void flush(){
+        SQLiteDatabase db = getDB();
+        String sql = "DROP TABLE IF EXISTS "+ getTable();
+        db.execSQL(sql);
     }
 
     @Override

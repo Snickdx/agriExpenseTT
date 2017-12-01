@@ -5,31 +5,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 
 public class ResourceContract extends Contract{
-	private static final String TEXT_TYPE = " TEXT";
-	private static final String COMMA_SEP = ",";
 
-	public static final String SQL_CREATE_RESOURCE = "CREATE TABLE IF NOT EXISTS "+ResourceEntry.TABLE_NAME+"("
-			+ResourceEntry._ID+" integer primary key autoincrement,"
-			+ResourceEntry.RESOURCES_NAME + TEXT_TYPE + COMMA_SEP
-			+ResourceEntry.RESOURCES_TYPE + TEXT_TYPE +");";
 
-	public static final String SQL_DELETE_RESOURCE = "DROP TABLE IF EXISTS "+ ResourceEntry.TABLE_NAME;
+    public final static String table = "resources";
 
-	private SQLiteDatabase db;
-	private String name;
-	private String type;
-	private String table;
 
 	public ResourceContract(SQLiteDatabase db, String name, String type){
 		this.db = db;
 		this.name = name;
 		this.type = type;
-		this.table = "resources";
+
 	}
 
     public ResourceContract(SQLiteDatabase db){
         this.db = db;
-        this.table = "resources";
     }
 
 	@Override
@@ -41,7 +30,7 @@ public class ResourceContract extends Contract{
 	}
 
 	@Override
-	protected String getTable() {
+	public String getTable() {
 	    return table;
 	}
 
