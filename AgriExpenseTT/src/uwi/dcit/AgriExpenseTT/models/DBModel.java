@@ -7,7 +7,7 @@ package uwi.dcit.AgriExpenseTT.models;
 public interface DBModel {
     public abstract int insert();
     public abstract int delete();
-    public abstract int create();
+    public abstract int init();
     public abstract DBModel get();
     public abstract DBModel getAll();
 }

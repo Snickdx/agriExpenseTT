@@ -218,7 +218,7 @@ public class DbHelper extends SQLiteOpenHelper{
 	}
 
 
-	//*************************** Create  Models
+	//*************************** Creates Tables for Models
 
 	private void createUpdateAccount(SQLiteDatabase db){db.execSQL(UpdateAccountContract.SQL_CREATE_UPDATE_ACCOUNT);}
 
@@ -228,7 +228,11 @@ public class DbHelper extends SQLiteOpenHelper{
 		db.execSQL(CycleContract.SQL_CREATE_CYCLE);
 	} 
 	
-	private void createResources(SQLiteDatabase db) {db.execSQL(ResourceContract.SQL_CREATE_RESOURCE);}
+	private void createResources(SQLiteDatabase db) {
+		ResourceContract r = new ResourceContract(db);
+		r.init();
+		//db.execSQL(ResourceContract.SQL_CREATE_RESOURCE);
+	}
 	
 	private void createTransactionLog(SQLiteDatabase db) {db.execSQL(TransactionLogContract.SQL_CREATE_TRANSACTION_LOG);}
 	

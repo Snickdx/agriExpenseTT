@@ -33,11 +33,13 @@ public class DbQuery {
 	
 	//Used to insert a new Chemical, Crop, Fertilizer, Labourer
 	public static int insertResource(SQLiteDatabase db,DbHelper dbh,String type,String name){
-		ContentValues cv= new ContentValues();
-		cv.put(ResourceContract.ResourceEntry.RESOURCES_NAME,name);
-		cv.put(ResourceContract.ResourceEntry.RESOURCES_TYPE,type);
-		db.insert(ResourceContract.ResourceEntry.TABLE_NAME, null, cv);
-		return getLast(db, dbh, ResourceContract.ResourceEntry.TABLE_NAME);
+        ResourceContract r = new ResourceContract(db, name, type);
+		return r.insert();
+//		ContentValues cv= new ContentValues();
+//		cv.put(ResourceContract.ResourceEntry.RESOURCES_NAME,name);
+//		cv.put(ResourceContract.ResourceEntry.RESOURCES_TYPE,type);
+//		db.insert(ResourceContract.ResourceEntry.TABLE_NAME, null, cv);
+//		return getLast(db, dbh, ResourceContract.ResourceEntry.TABLE_NAME);
 	}
 
 	//this is for when the farmer buys any material crop, fertilizer, chemical NOT WHEN HE USES
