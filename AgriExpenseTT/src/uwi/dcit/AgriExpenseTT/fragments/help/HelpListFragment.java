@@ -37,6 +37,17 @@ public class HelpListFragment extends ListFragment{
         this.getListView().setOnItemClickListener(new OnItemClickListener(){
 			public void onItemClick(AdapterView<?> adapter, View view, int position, long id) {
 
+				HelpMenuItemFactory hmi_f = new HelpMenuItemFactory();
+				HelpMenuItem hmi = hmi_f.getMenuItem(position);
+				if(hmi!=null)
+					getFragmentManager()
+							.beginTransaction()
+							.replace(R.id.help_lists, hmi)
+							.addToBackStack("Help List")
+							.commit();
+				else
+					Toast.makeText(getActivity(), "Help Topic not found", Toast.LENGTH_SHORT).show();
+				/*
 				Fragment frag = null;
 				Intent intent;
 
@@ -91,6 +102,7 @@ public class HelpListFragment extends ListFragment{
 						.replace(R.id.help_lists, frag)
 						.addToBackStack("Help List")
 						.commit();
+				*/
 				
 			}
         });

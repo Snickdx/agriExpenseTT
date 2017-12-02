@@ -12,7 +12,7 @@ import android.widget.TextView;
 import uwi.dcit.AgriExpenseTT.R;
 import uwi.dcit.AgriExpenseTT.helpers.GAnalyticsHelper;
 
-public class HelpHiringLabourFragment extends Fragment {
+public class HelpHiringLabourFragment extends HelpMenuItem {//Fragment {
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -58,5 +58,12 @@ public class HelpHiringLabourFragment extends Fragment {
 
         GAnalyticsHelper.getInstance(this.getActivity()).sendScreenView("Help Hiring Labour Fragment");
 		return view;
+	}
+	public void addToHelpList(){
+		getFragmentManager()
+				.beginTransaction()
+				.replace(R.id.help_lists, this)
+				.addToBackStack("Help List")
+				.commit();
 	}
 }
