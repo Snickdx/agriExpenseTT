@@ -5,17 +5,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 
-/**
- * Created by Nicholas on 29/11/2017.
- */
-
 public abstract class SQLiteDBModel implements DBModel, BaseColumns {
 
-
+    //might do command obj pattern to handle diff exports
     protected abstract ContentValues getContentValues();
     protected abstract String getTable();
     protected abstract SQLiteDatabase getDB();
-    protected abstract String getID();
     protected abstract String getName();
     protected abstract String getType();
 
@@ -27,6 +22,10 @@ public abstract class SQLiteDBModel implements DBModel, BaseColumns {
         int res = cursor.getInt(cursor.getColumnIndex("_id"));
         cursor.close();
         return res;
+    }
+
+    protected String getID() {
+        return _ID;
     }
 
     @Override
