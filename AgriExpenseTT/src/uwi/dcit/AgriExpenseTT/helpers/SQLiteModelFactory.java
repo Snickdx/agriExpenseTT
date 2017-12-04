@@ -1,27 +1,23 @@
 package uwi.dcit.AgriExpenseTT.helpers;
 
-import android.database.sqlite.SQLiteDatabase;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import uwi.dcit.AgriExpenseTT.models.Contract;
-import uwi.dcit.AgriExpenseTT.models.CountryContract;
-import uwi.dcit.AgriExpenseTT.models.CountyContract;
-import uwi.dcit.AgriExpenseTT.models.ResourceContract;
+
+import uwi.dcit.AgriExpenseTT.models.SQLiteDBModel;
 
 
-public class ContractFactory {
-    private static final ContractFactory ourInstance = new ContractFactory();
+public class SQLiteModelFactory {
+    private static final SQLiteModelFactory ourInstance = new SQLiteModelFactory();
 
-    public static ContractFactory getInstance() {
+    public static SQLiteModelFactory getInstance() {
         return ourInstance;
     }
 
-    public List<Contract> contractTypes = new ArrayList<>();
+    public List<SQLiteDBModel> contractTypes = new ArrayList<>();
 
 
-//    public ContractFactory(SQLiteDatabase db) {
+//    public SQLiteModelFactory(SQLiteDatabase db) {
 //        contractTypes.add(new ResourceContract(db));
 //        contractTypes.add(new ResourceContract(db));
 //        contractTypes.add(new ResourceContract(db));

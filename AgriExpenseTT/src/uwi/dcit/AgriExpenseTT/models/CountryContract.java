@@ -1,59 +1,78 @@
 package uwi.dcit.AgriExpenseTT.models;
 
 import android.content.ContentValues;
-import android.provider.BaseColumns;
+import android.database.sqlite.SQLiteDatabase;
 
-public class CountryContract extends Contract{
+public class CountryContract extends SQLiteDBModel{
+
+
+    public CountryContract(SQLiteDatabase db){
+        this.db = db;
+    }
+
+    public CountryContract(SQLiteDatabase db, String name, String type){
+        this.db = db;
+        this.name = name;
+        this.type = type;
+    }
+
+    protected String name;
+    protected String type;
+    protected SQLiteDatabase db;
 
     public final static String table = "countries";
 
-    private static final String TEXT_TYPE = " TEXT";
-    private static final String COMMA_SEP = ",";
-    public static final String SQL_CREATE_COUNTRIES =
-            "CREATE TABLE IF NOT EXISTS "+CountryEntry.TABLE_NAME + " ( "+
-                    CountryEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT "+ COMMA_SEP +
-                    CountryEntry.COLUMN_NAME_COUNTRY + TEXT_TYPE + COMMA_SEP +
-                    CountryEntry.COLUMN_NAME_TYPE + TEXT_TYPE + " )";
-
-    public static final String SQL_DELETE_COUNTRIES =
-            "DROP TABLE IF EXISTS " + CountryEntry.TABLE_NAME;
-
-    public static final String [][] countries = {
-            {"Anguilla", "district"},
-            {"Antigua & Barbuda", "parish"},
-            {"Bahamas", "island"},
-            {"Barbados", "parish"},
-            {"Belize","district"},
-            {"British Virgin Islands","island"},
-            {"Cayman Islands","island"},
-            {"Dominica", "parish"},
-            {"Grenada", "parish"},
-            {"Guyana","region"},
-            {"Haiti","district"},
-            {"Jamaica", "parish"},
-            {"Montserrat","parish"},
-            {"St Kitts & Nevis","parish"},
-            {"St Lucia","parish"},
-            {"St Vincent and the Grenadines", "parish"},
-            {"Suriname", "district"},
-            {"Trinidad and Tobago","county"},
-            {"Turks & Caicos Islands", "island"}
-    };
-
     @Override
     protected ContentValues getContentValues() {
-        return null;
+        ContentValues cv = new ContentValues();
+        cv.put("country", name);
+        cv.put("subdivision", type);
+        return cv;
     }
 
     @Override
     protected String getTable() {
-        return null;
+        return table;
     }
 
-    public static abstract class CountryEntry implements BaseColumns{
-        public static final String TABLE_NAME = "countries";
-        public static final String COLUMN_NAME_COUNTRY = "country ";
-        public static final String COLUMN_NAME_TYPE = "subdivision ";
+    @Override
+    protected SQLiteDatabase getDB() {
+        return db;
+    }
 
+    @Override
+    protected String getName() {
+        return name;
+    }
+
+    public static String [][] getCountries(){
+        String [][] countries = {
+                {"Anguilla", "district"},
+                {"Antigua & Barbuda", "parish"},
+                {"Bahamas", "island"},
+                {"Barbados", "parish"},
+                {"Belize","district"},
+                {"British Virgin Islands","island"},
+                {"Cayman Islands","island"},
+                {"Dominica", "parish"},
+                {"Grenada", "parish"},
+                {"Guyana","region"},
+                {"Haiti","district"},
+                {"Jamaica", "parish"},
+                {"Montserrat","parish"},
+                {"St Kitts & Nevis","parish"},
+                {"St Lucia","parish"},
+                {"St Vincent and the Grenadines", "parish"},
+                {"Suriname", "district"},
+                {"Trinidad and Tobago","county"},
+                {"Turks & Caicos Islands", "island"}
+        };
+        return countries;
+    }
+
+    @Override
+    public int  init(){
+        db.execSQL("CREATE TABLE IF NOT EXISTS countries ( "+ _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, subdivision TEXT)");
+        return 0;
     }
 }

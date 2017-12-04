@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uwi.dcit.AgriExpenseTT.models.CloudKeyContract.CloudKeyEntry;
-import uwi.dcit.AgriExpenseTT.models.CountryContract.CountryEntry;
-import uwi.dcit.AgriExpenseTT.models.CountyContract.CountyEntry;
+import uwi.dcit.AgriExpenseTT.models.CountryContract;
+
+import uwi.dcit.AgriExpenseTT.models.CountyContract;
+
 import uwi.dcit.AgriExpenseTT.models.CycleContract.CycleEntry;
 import uwi.dcit.AgriExpenseTT.models.CycleResourceContract.CycleResourceEntry;
 import uwi.dcit.AgriExpenseTT.models.LocalCycle;
@@ -35,11 +37,7 @@ public class DbQuery {
 	public static int insertResource(SQLiteDatabase db,DbHelper dbh,String type,String name){
         ResourceContract r = new ResourceContract(db, name, type);
 		return r.insert();
-//		ContentValues cv= new ContentValues();
-//		cv.put(ResourceContract.ResourceEntry.RESOURCES_NAME,name);
-//		cv.put(ResourceContract.ResourceEntry.RESOURCES_TYPE,type);
-//		db.insert(ResourceContract.ResourceEntry.TABLE_NAME, null, cv);
-//		return getLast(db, dbh, ResourceContract.ResourceEntry.TABLE_NAME);
+
 	}
 
 	//this is for when the farmer buys any material crop, fertilizer, chemical NOT WHEN HE USES
@@ -124,33 +122,23 @@ public class DbQuery {
         return rowId;
     }
 	
-	public static int insertCountry(SQLiteDatabase db, String country, String type){
-		ContentValues cv = new ContentValues();
-		cv.put(CountryEntry.COLUMN_NAME_COUNTRY, country);
-		cv.put(CountryEntry.COLUMN_NAME_TYPE, type);
-		return (int)db.insert(CountryEntry.TABLE_NAME, null, cv);
+	public static int insertCountry(SQLiteDatabase db, String name, String type){
+		return new CountryContract(db, name, type).insert();
 	}
-	
-	public static int insertCountry(SQLiteDatabase db, String country){
-		return insertCountry(db, country, "parish");
-	}
-	
+
 	public static int insertCounty(SQLiteDatabase db, String country, String county){
 		int countryId = getCountryIdByName(db, country);
 		if (countryId == -1)return -1; //not a valid country specified
-		return insertCounty(db, countryId, county);
+		return new CountyContract(db, countryId, county).insert();
 	}
 	
 	public static int insertCounty(SQLiteDatabase db, int country, String county){
-		ContentValues cv = new ContentValues();
-		cv.put(CountyEntry.COLUMN_NAME_COUNTRY, country);
-		cv.put(CountyEntry.COLUMN_NAME_COUNTY, county);
-		return (int)db.insert(CountyEntry.TABLE_NAME, null, cv);
+		return new CountyContract(db, country, county).insert();
 	}
 	
 	public static ArrayList<String> getCountries(SQLiteDatabase db, ArrayList<String> list){
 		if (list == null) list = new ArrayList<>();
-		String sqlStr = "SELECT country FROM " + CountryEntry.TABLE_NAME +";";
+		String sqlStr = "SELECT country FROM " + CountryContract.table +";";
 		Cursor cursor = db.rawQuery(sqlStr, null);
 		while (cursor.moveToNext()) list.add(cursor.getString(cursor.getColumnIndex("country")));
 		cursor.close();
@@ -159,7 +147,7 @@ public class DbQuery {
 	
 	public static int getCountryIdByName(SQLiteDatabase db, String country){
 		int id = -1;
-		String sqlStr = "SELECT "+ CountryEntry._ID + " FROM "+ CountryEntry.TABLE_NAME +";";
+		String sqlStr = "SELECT "+ CountryContract._ID + " FROM "+ CountryContract.table +";";
 		Cursor cursor = db.rawQuery(sqlStr, null);
 		if (cursor.getCount() > 0){
 			cursor.moveToFirst();

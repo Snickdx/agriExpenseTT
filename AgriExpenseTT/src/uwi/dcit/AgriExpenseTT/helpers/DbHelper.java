@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.List;
 
 import uwi.dcit.AgriExpenseTT.models.CloudKeyContract;
-import uwi.dcit.AgriExpenseTT.models.Contract;
 import uwi.dcit.AgriExpenseTT.models.CountryContract;
 import uwi.dcit.AgriExpenseTT.models.CountyContract;
 import uwi.dcit.AgriExpenseTT.models.CycleContract;
@@ -24,6 +23,7 @@ import uwi.dcit.AgriExpenseTT.models.RedoLogContract;
 import uwi.dcit.AgriExpenseTT.models.RedoLogContract.RedoLogEntry;
 import uwi.dcit.AgriExpenseTT.models.ResourceContract;
 import uwi.dcit.AgriExpenseTT.models.ResourcePurchaseContract;
+import uwi.dcit.AgriExpenseTT.models.SQLiteDBModel;
 import uwi.dcit.AgriExpenseTT.models.TransactionLogContract;
 import uwi.dcit.AgriExpenseTT.models.TransactionLogContract.TransactionLogEntry;
 import uwi.dcit.AgriExpenseTT.models.UpdateAccountContract;
@@ -35,9 +35,9 @@ public class DbHelper extends SQLiteOpenHelper{
     private static final String TAG_NAME = "AgriExpenseDBHelper";
     private Context ctx;
 
-    private List<Contract> defaults;
+    private List<SQLiteDBModel> defaults;
 
-    private ContractFactory cf;
+    private SQLiteModelFactory cf;
 
 
 
@@ -190,35 +190,29 @@ public class DbHelper extends SQLiteOpenHelper{
         createResourcePurchases(db);
         createResourceUse(db);
         createLabour(db);
-
         createCloudKeys(db);
         createRedoLog(db);
         createTransactionLog(db);
         createUpdateAccount(db);
-
         createCountries(db);
         createCounties(db);
     }
 
     private void dropTables(SQLiteDatabase db) {
         db.beginTransaction();
-
         db.execSQL(CycleResourceContract.SQL_DELETE_CYCLE_RESOURCE);
         db.execSQL(ResourcePurchaseContract.SQL_DELETE_RESOURCE_PURCHASE);
         db.execSQL(CycleContract.SQL_DELETE_CYCLE);
-
-//		db.execSQL(ResourceContract.SQL_DELETE_RESOURCE);
-        ResourceContract r = new ResourceContract(db);
-        r.flush();
         db.execSQL(CloudKeyContract.SQL_DELETE_CLOUD_KEY);
         db.execSQL(RedoLogContract.SQL_DELETE_REDO_LOG);
         db.execSQL(TransactionLogContract.SQL_DELETE_TRANSACTION_LOG);
         db.execSQL(UpdateAccountContract.SQL_DELETE_UPDATE_ACCOUNT);
-        db.execSQL(CountryContract.SQL_DELETE_COUNTRIES);
-        db.execSQL(CountyContract.SQL_DELETE_COUNTIES);
-
         db.setTransactionSuccessful();
         db.endTransaction();
+
+        new ResourceContract(db).flush();
+        new CountryContract(db).flush();
+        new CountyContract(db).flush();
     }
 
     private boolean columnExists(SQLiteDatabase db, String tableName, String columnName){
@@ -244,11 +238,6 @@ public class DbHelper extends SQLiteOpenHelper{
         db.execSQL(CycleContract.SQL_CREATE_CYCLE);
     }
 
-    private void createResources(SQLiteDatabase db) {
-        //db.execSQL(ResourceContract.SQL_CREATE_RESOURCE);
-        ResourceContract r = new ResourceContract(db);
-        r.init();
-    }
 
     private void createTransactionLog(SQLiteDatabase db) {db.execSQL(TransactionLogContract.SQL_CREATE_TRANSACTION_LOG);}
 
@@ -260,10 +249,15 @@ public class DbHelper extends SQLiteOpenHelper{
         db.execSQL(RedoLogContract.SQL_CREATE_REDO_LOG);
     }
 
-    private void createCountries(SQLiteDatabase db) {db.execSQL(CountryContract.SQL_CREATE_COUNTRIES);}
+    private void createResources(SQLiteDatabase db) {
+        new ResourceContract(db).init();
+    }
+
+    private void createCountries(SQLiteDatabase db) {
+        new CountryContract(db).init();}
 
     private void createCounties(SQLiteDatabase db) {
-        db.execSQL(CountyContract.SQL_CREATE_COUNTIES);
+        new CountyContract(db).init();
     }
 
     private void createLabour(SQLiteDatabase db) {
@@ -369,24 +363,39 @@ public class DbHelper extends SQLiteOpenHelper{
     }
 
     private void insertDefaultCountries(SQLiteDatabase db) {
-        for (String [] country : CountryContract.countries){
+        String [][] countries = {
+                {"Anguilla", "district"},
+                {"Antigua & Barbuda", "parish"},
+                {"Bahamas", "island"},
+                {"Barbados", "parish"},
+                {"Belize","district"},
+                {"British Virgin Islands","island"},
+                {"Cayman Islands","island"},
+                {"Dominica", "parish"},
+                {"Grenada", "parish"},
+                {"Guyana","region"},
+                {"Haiti","district"},
+                {"Jamaica", "parish"},
+                {"Montserrat","parish"},
+                {"St Kitts & Nevis","parish"},
+                {"St Lucia","parish"},
+                {"St Vincent and the Grenadines", "parish"},
+                {"Suriname", "district"},
+                {"Trinidad and Tobago","county"},
+                {"Turks & Caicos Islands", "island"}
+        };
+        for (String [] country : countries){
             DbQuery.insertCountry(db, country[0], country[1]);
         }
     }
 
     private void insertDefaultCounties(SQLiteDatabase db) {
-        for (String [] county : CountyContract.counties){
+        for (String [] county : CountyContract.getCounties()){
             DbQuery.insertCounty(db, county[0], county[1]);
         }
     }
 
     private void populate(SQLiteDatabase db, TransactionLog tL) {
-        //create user Account
-//		UpAcc acc = new UpAcc();
-//		acc.setSignedIn(0);
-//		acc.setLastUpdated(System.currentTimeMillis() / 1000L);
-//		DbQuery.insertAccountTask(db, acc);
-
         insertDefaultCrops(db);
         insertDefaultFertilizers(db);
         insertDefaultSoilAdds(db);

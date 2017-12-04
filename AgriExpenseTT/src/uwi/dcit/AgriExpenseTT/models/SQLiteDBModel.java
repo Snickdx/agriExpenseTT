@@ -12,7 +12,7 @@ public abstract class SQLiteDBModel implements DBModel, BaseColumns {
     protected abstract String getTable();
     protected abstract SQLiteDatabase getDB();
     protected abstract String getName();
-    protected abstract String getType();
+
 
     private int getLast(SQLiteDatabase db, String table){
         String code="select _id from " + table + "  ORDER BY _id DESC LIMIT 1;";
