@@ -67,14 +67,14 @@ public class FragmentSelectLocation extends ListFragment {
 		}else if (type.equals(DHelper.location_county)){ // County selection
 
             countyTerm = null;
-            for(String[] s : CountryContract.countries){
+            for(String[] s : CountryContract.getCountries()){
                 if(s[0].equals(country)){
                     countyTerm =s[1];
                     break;
                 }
             }
 
-            for(String[] s : CountyContract.counties){
+            for(String[] s : CountyContract.getCounties()){
                 if(s[0].equals(country)){
                     list.add(s[1]);
                 }

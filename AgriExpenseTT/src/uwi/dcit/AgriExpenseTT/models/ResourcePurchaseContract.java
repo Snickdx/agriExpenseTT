@@ -18,7 +18,7 @@ public class ResourcePurchaseContract {
 			+ResourcePurchaseEntry.RESOURCE_PURCHASE_COST+" REAL" + COMMA_SEP
 			+ResourcePurchaseEntry.RESOURCE_PURCHASE_DATE+ INT_TYPE + COMMA_SEP
 			+ResourcePurchaseEntry.RESOURCE_PURCHASE_RESOURCE + TEXT_TYPE + COMMA_SEP
-			+"foreign key("+ResourcePurchaseEntry.RESOURCE_PURCHASE_RESID+") references "+ ResourceContract.ResourceEntry.TABLE_NAME + "(" + ResourceContract.ResourceEntry._ID + "));";
+			+"foreign key("+ResourcePurchaseEntry.RESOURCE_PURCHASE_RESID+") references "+ ResourceContract.table + "(" + ResourceContract._ID + "));";
 	
 	public static final String SQL_DELETE_RESOURCE_PURCHASE = 
 			"DROP TABLE IF EXISTS " + ResourcePurchaseEntry.TABLE_NAME;

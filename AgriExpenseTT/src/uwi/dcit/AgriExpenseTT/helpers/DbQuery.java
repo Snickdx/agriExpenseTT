@@ -8,9 +8,11 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
-import uwi.dcit.AgriExpenseTT.models.CloudKeyContract.CloudKeyEntry;
-import uwi.dcit.AgriExpenseTT.models.CountryContract.CountryEntry;
-import uwi.dcit.AgriExpenseTT.models.CountyContract.CountyEntry;
+import uwi.dcit.AgriExpenseTT.models.CloudKeyContract;
+import uwi.dcit.AgriExpenseTT.models.CountryContract;
+
+import uwi.dcit.AgriExpenseTT.models.CountyContract;
+
 import uwi.dcit.AgriExpenseTT.models.CycleContract.CycleEntry;
 import uwi.dcit.AgriExpenseTT.models.CycleResourceContract.CycleResourceEntry;
 import uwi.dcit.AgriExpenseTT.models.LocalCycle;
@@ -33,11 +35,9 @@ public class DbQuery {
 	
 	//Used to insert a new Chemical, Crop, Fertilizer, Labourer
 	public static int insertResource(SQLiteDatabase db,DbHelper dbh,String type,String name){
-		ContentValues cv= new ContentValues();
-		cv.put(ResourceContract.ResourceEntry.RESOURCES_NAME,name);
-		cv.put(ResourceContract.ResourceEntry.RESOURCES_TYPE,type);
-		db.insert(ResourceContract.ResourceEntry.TABLE_NAME, null, cv);
-		return getLast(db, dbh, ResourceContract.ResourceEntry.TABLE_NAME);
+        ResourceContract r = new ResourceContract(db, name, type);
+		return r.insert();
+
 	}
 
 	//this is for when the farmer buys any material crop, fertilizer, chemical NOT WHEN HE USES
@@ -72,7 +72,6 @@ public class DbQuery {
         tl.insertTransLog(ResourcePurchaseEntry.TABLE_NAME, rowId, TransactionLog.TL_INS);//records the insert of a purchase
         return rowId;
     }
-
 
     public static int insertResourceUse(SQLiteDatabase db, DbHelper dbh,int cycleId, String type, int resourcePurchasedId, double qty, String quantifier, double useCost, TransactionLog tl){
         ContentValues cv= new ContentValues();
@@ -122,42 +121,147 @@ public class DbQuery {
         return rowId;
     }
 	
-	public static int insertCountry(SQLiteDatabase db, String country, String type){
-		ContentValues cv = new ContentValues();
-		cv.put(CountryEntry.COLUMN_NAME_COUNTRY, country);
-		cv.put(CountryEntry.COLUMN_NAME_TYPE, type);
-		return (int)db.insert(CountryEntry.TABLE_NAME, null, cv);
+	public static int insertCountry(SQLiteDatabase db, String name, String type){
+		return new CountryContract(db, name, type).insert();
 	}
-	
-	public static int insertCountry(SQLiteDatabase db, String country){
-		return insertCountry(db, country, "parish");
-	}
-	
+
 	public static int insertCounty(SQLiteDatabase db, String country, String county){
 		int countryId = getCountryIdByName(db, country);
 		if (countryId == -1)return -1; //not a valid country specified
-		return insertCounty(db, countryId, county);
+		return new CountyContract(db, countryId, county).insert();
 	}
 	
 	public static int insertCounty(SQLiteDatabase db, int country, String county){
-		ContentValues cv = new ContentValues();
-		cv.put(CountyEntry.COLUMN_NAME_COUNTRY, country);
-		cv.put(CountyEntry.COLUMN_NAME_COUNTY, county);
-		return (int)db.insert(CountyEntry.TABLE_NAME, null, cv);
+		return new CountyContract(db, country, county).insert();
 	}
-	
-	public static ArrayList<String> getCountries(SQLiteDatabase db, ArrayList<String> list){
-		if (list == null) list = new ArrayList<>();
-		String sqlStr = "SELECT country FROM " + CountryEntry.TABLE_NAME +";";
-		Cursor cursor = db.rawQuery(sqlStr, null);
-		while (cursor.moveToNext()) list.add(cursor.getString(cursor.getColumnIndex("country")));
-		cursor.close();
-		return list;
-	}
-	
+
+    public static List<LocalCycleUse> getCycleUseP(SQLiteDatabase db, DbHelper dbh,int purchaseId,ArrayList<LocalCycleUse> list,String type){
+        String code;
+        if(type==null)
+            code="select * from "+CycleResourceEntry.TABLE_NAME+" where "+CycleResourceEntry.CYCLE_RESOURCE_PURCHASE_ID+"="+purchaseId+";";
+        else
+            code="select * from "+CycleResourceEntry.TABLE_NAME+" where "+CycleResourceEntry.CYCLE_RESOURCE_PURCHASE_ID+"="+purchaseId+" and "+CycleResourceEntry.CYCLE_RESOURCE_TYPE+"='"+type+"';";
+        Cursor cursor=db.rawQuery(code, null);
+        if(cursor.getCount()<1)
+            return list;
+        while(cursor.moveToNext()){
+            LocalCycleUse l=new LocalCycleUse();
+            l.setId(cursor.getInt(cursor.getColumnIndex(CycleResourceEntry._ID)));
+            l.setAmount(cursor.getDouble(cursor.getColumnIndex(CycleResourceEntry.CYCLE_RESOURCE_QTY)));
+            l.setCycleid(cursor.getInt(cursor.getColumnIndex(CycleResourceEntry.CYCLE_RESOURCE_CYCLEID)));
+            l.setPurchaseId(cursor.getInt(cursor.getColumnIndex(CycleResourceEntry.CYCLE_RESOURCE_PURCHASE_ID)));
+            l.setResource(cursor.getString(cursor.getColumnIndex(CycleResourceEntry.CYCLE_RESOURCE_TYPE)));
+            l.setUseCost(cursor.getDouble(cursor.getColumnIndex(CycleResourceEntry.CYCLE_RESOURCE_USECOST)));
+            list.add(l);
+        }
+        cursor.close();
+        return list;
+    }
+    public static List<String> getResources(SQLiteDatabase db, DbHelper dbh, String type,ArrayList<String> list){
+        String code;
+        if(type!=null)
+            code="select name from "+ ResourceContract.table+" where type ='"+type+"';";
+        else
+            code="select name from "+ ResourceContract.table;
+        Cursor cursor=db.rawQuery(code, null);
+        if(cursor.getCount()<1)
+            return list;
+        while(cursor.moveToNext()){
+            list.add(cursor.getString(cursor.getColumnIndex("name")));
+        }
+        cursor.close();
+        return list;
+    }
+    public static List<LocalCycle> getCycles(SQLiteDatabase db, DbHelper dbh, ArrayList<LocalCycle> list){
+        if (list == null)list = new ArrayList<>();
+
+        String code="select * from "+CycleEntry.TABLE_NAME+";";
+        Cursor cursor=db.rawQuery(code, null);
+        if(cursor.getCount()<1)
+            return list;
+        while(cursor.moveToNext()){
+            LocalCycle n=new LocalCycle();
+            n.setId(cursor.getInt(cursor.getColumnIndex(CycleEntry._ID)));
+            n.setCropId(cursor.getInt(cursor.getColumnIndex(CycleEntry.CROPCYCLE_CROPID)));
+            n.setLandType(cursor.getString(cursor.getColumnIndex(CycleEntry.CROPCYCLE_LAND_TYPE)));
+            n.setLandQty(cursor.getDouble(cursor.getColumnIndex(CycleEntry.CROPCYCLE_LAND_AMOUNT)));
+            n.setTime(cursor.getLong(cursor.getColumnIndex(CycleEntry.CROPCYCLE_DATE)));
+            n.setTotalSpent(cursor.getDouble(cursor.getColumnIndex(CycleEntry.CROPCYCLE_TOTALSPENT)));
+            n.setClosed(cursor.getString(cursor.getColumnIndex(CycleEntry.CROPCYCLE_CLOSED)));
+            n.setHarvestAmt(cursor.getDouble(cursor.getColumnIndex(CycleEntry.CROPCYCLE_HARVEST_AMT)));
+            n.setHarvestType(cursor.getString(cursor.getColumnIndex(CycleEntry.CROPCYCLE_HARVEST_TYPE)));
+            n.setCostPer(cursor.getDouble(cursor.getColumnIndex(CycleEntry.CROPCYCLE_COSTPER)));
+            n.setCropName(cursor.getString(cursor.getColumnIndex(CycleEntry.CROPCYCLE_RESOURCE)));
+            n.setCycleName(cursor.getString(cursor.getColumnIndex(CycleEntry.CROPCYCLE_NAME)));
+            list.add(n);
+        }
+
+        cursor.close();
+        return list;
+    }
+    public static ArrayList<String> getCountries(SQLiteDatabase db, ArrayList<String> list){
+        if (list == null) list = new ArrayList<>();
+        String sqlStr = "SELECT country FROM " + CountryContract.table +";";
+        Cursor cursor = db.rawQuery(sqlStr, null);
+        while (cursor.moveToNext()) list.add(cursor.getString(cursor.getColumnIndex("country")));
+        cursor.close();
+        return list;
+    }
+    public static List<LocalResourcePurchase> getResourcePurchases(SQLiteDatabase db, DbHelper dbh,ArrayList<LocalResourcePurchase>list,int resId){
+        if (list == null)list = new ArrayList<>();
+
+        String code = "select * from "+ResourcePurchaseEntry.TABLE_NAME+" where "+ResourcePurchaseEntry.RESOURCE_PURCHASE_RESID+"="+resId+";";
+        Cursor cursor =db.rawQuery(code, null);
+        if(cursor.getCount()<1)
+            return list;
+        while(cursor.moveToNext()){
+            LocalResourcePurchase m=new LocalResourcePurchase();
+            m.setpId(cursor.getInt(cursor.getColumnIndex(ResourcePurchaseEntry._ID)));
+            m.setResourceId(cursor.getInt(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_RESID)));
+            m.setType(cursor.getString(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_TYPE)));
+            m.setQuantifier(cursor.getString(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_QUANTIFIER)));
+            m.setQty(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_QTY)));
+            m.setCost(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_COST)));
+            m.setQtyRemaining(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_REMAINING)));
+            m.setDate(cursor.getLong(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_DATE)));
+            list.add(m);
+        }
+        cursor.close();
+        return list;
+    }
+    public static List<LocalResourcePurchase> getPurchases(SQLiteDatabase db, DbHelper dbh, ArrayList<LocalResourcePurchase> list, String type, String quantifier, boolean allowFinished){
+        if (list == null)list = new ArrayList<>();
+
+        String code;
+        if(type == null)
+            code="select * from "+ResourcePurchaseEntry.TABLE_NAME+";";
+        else
+            code="select * from "+ResourcePurchaseEntry.TABLE_NAME+" where "+ResourcePurchaseEntry.RESOURCE_PURCHASE_TYPE+"='"+type+"';";
+
+        Cursor cursor = db.rawQuery(code, null);
+        if(cursor == null || cursor.getCount() < 1 )
+            return list;
+
+        while(cursor.moveToNext()){
+            LocalResourcePurchase m=new LocalResourcePurchase();
+            m.setpId(cursor.getInt(cursor.getColumnIndex(ResourcePurchaseEntry._ID)));
+            m.setResourceId(cursor.getInt(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_RESID)));
+            m.setType(cursor.getString(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_TYPE)));
+            m.setQuantifier(cursor.getString(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_QUANTIFIER)));
+            m.setQty(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_QTY)));
+            m.setCost(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_COST)));
+            m.setQtyRemaining(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_REMAINING)));
+            m.setDate(cursor.getLong(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_DATE)));
+            list.add(m);
+        }
+
+        cursor.close();
+        return list;
+    }
+
 	public static int getCountryIdByName(SQLiteDatabase db, String country){
 		int id = -1;
-		String sqlStr = "SELECT "+ CountryEntry._ID + " FROM "+ CountryEntry.TABLE_NAME +";";
+		String sqlStr = "SELECT "+ CountryContract._ID + " FROM "+ CountryContract.table +";";
 		Cursor cursor = db.rawQuery(sqlStr, null);
 		if (cursor.getCount() > 0){
 			cursor.moveToFirst();
@@ -166,78 +270,24 @@ public class DbQuery {
 		cursor.close();
 		return id;
 	}
-	
-	public static List<String> getResources(SQLiteDatabase db, DbHelper dbh, String type,ArrayList<String> list){
-		String code;
-		if(type!=null)
-			code="select name from "+ ResourceContract.ResourceEntry.TABLE_NAME+" where "+ ResourceContract.ResourceEntry.RESOURCES_TYPE+"='"+type+"';";
-		else
-			code="select name from "+ ResourceContract.ResourceEntry.TABLE_NAME;
-		Cursor cursor=db.rawQuery(code, null);
-		if(cursor.getCount()<1)
-			return list;
-		while(cursor.moveToNext()){
-			list.add(cursor.getString(cursor.getColumnIndex("name")));
-		}
-		cursor.close();
-        return list;
-	}
-
-    public static boolean resourceExistByName(SQLiteDatabase db, DbHelper dbh, String name){
-        name = name.toLowerCase();
-        String code = "SELECT name from " + ResourceContract.ResourceEntry.TABLE_NAME +  " WHERE LOWER(" + ResourceContract.ResourceEntry.RESOURCES_NAME + ") LIKE '%"+name+"%';";
-
-        Cursor cursor = db.rawQuery(code, null);
-        if (cursor.getCount() >= 1){
-            while(cursor.moveToNext()){
-                String res = cursor.getString(cursor.getColumnIndex("name"));
-                if (res.equalsIgnoreCase(name))return true;
-            }
-        }
-        return false;
-    }
 
     public static int getNameResourceId(SQLiteDatabase db,DbHelper dbh,String name){
-		String code="select "+ ResourceContract.ResourceEntry._ID+" from "+ ResourceContract.ResourceEntry.TABLE_NAME+" where "+ ResourceContract.ResourceEntry.RESOURCES_NAME+"='"+name+"';";
-		Cursor cursor=db.rawQuery(code, null);
+//		String code="select "+ ResourceContract.ResourceEntry._ID+" from "+ ResourceContract.ResourceEntry.TABLE_NAME+" where "+ ResourceContract.ResourceEntry.RESOURCES_NAME+"='"+name+"';";
+//		Cursor cursor=db.rawQuery(code, null);
+
+        ResourceContract r = new ResourceContract(db);
+        Cursor cursor = r.getByName(name);
+
 		if(cursor.getCount()<1)
 			return -1;
 		cursor.moveToFirst();
-        int res = cursor.getInt(cursor.getColumnIndex(ResourceContract.ResourceEntry._ID));
+        int res = cursor.getInt(cursor.getColumnIndex(ResourceContract._ID));
         cursor.close();
 		return res;
 	}
 
-    public static List<LocalCycle> getCycles(SQLiteDatabase db, DbHelper dbh, ArrayList<LocalCycle> list){
-		if (list == null)list = new ArrayList<>();
-
-        String code="select * from "+CycleEntry.TABLE_NAME+";";
-		Cursor cursor=db.rawQuery(code, null);
-		if(cursor.getCount()<1)
-			return list;
-		while(cursor.moveToNext()){
-			LocalCycle n=new LocalCycle();
-			n.setId(cursor.getInt(cursor.getColumnIndex(CycleEntry._ID)));
-			n.setCropId(cursor.getInt(cursor.getColumnIndex(CycleEntry.CROPCYCLE_CROPID)));
-			n.setLandType(cursor.getString(cursor.getColumnIndex(CycleEntry.CROPCYCLE_LAND_TYPE)));
-			n.setLandQty(cursor.getDouble(cursor.getColumnIndex(CycleEntry.CROPCYCLE_LAND_AMOUNT)));
-			n.setTime(cursor.getLong(cursor.getColumnIndex(CycleEntry.CROPCYCLE_DATE)));
-			n.setTotalSpent(cursor.getDouble(cursor.getColumnIndex(CycleEntry.CROPCYCLE_TOTALSPENT)));
-			n.setClosed(cursor.getString(cursor.getColumnIndex(CycleEntry.CROPCYCLE_CLOSED)));
-			n.setHarvestAmt(cursor.getDouble(cursor.getColumnIndex(CycleEntry.CROPCYCLE_HARVEST_AMT)));
-			n.setHarvestType(cursor.getString(cursor.getColumnIndex(CycleEntry.CROPCYCLE_HARVEST_TYPE)));
-			n.setCostPer(cursor.getDouble(cursor.getColumnIndex(CycleEntry.CROPCYCLE_COSTPER)));
-			n.setCropName(cursor.getString(cursor.getColumnIndex(CycleEntry.CROPCYCLE_RESOURCE)));
-            n.setCycleName(cursor.getString(cursor.getColumnIndex(CycleEntry.CROPCYCLE_NAME)));
-			list.add(n);
-		}
-
-        cursor.close();
-        return list;
-	}
-	
-	public static String findResourceName(SQLiteDatabase db, DbHelper dbh, int id){
-		String code="select name from "+ ResourceContract.ResourceEntry.TABLE_NAME+" where "+ ResourceContract.ResourceEntry._ID +"="+id+";";
+    public static String findResourceName(SQLiteDatabase db, DbHelper dbh, int id){
+		String code="select name from "+ ResourceContract.table+" where "+ ResourceContract._ID +"="+id+";";
 		String res = null;
         Cursor cursor=db.rawQuery(code,null);
 		if(cursor.getCount()>0){
@@ -248,59 +298,7 @@ public class DbQuery {
 		return res;
 	}
 	
-	public static List<LocalResourcePurchase> getPurchases(SQLiteDatabase db, DbHelper dbh, ArrayList<LocalResourcePurchase> list, String type, String quantifier, boolean allowFinished){
-		if (list == null)list = new ArrayList<>();
 
-        String code;
-		if(type == null)
-			code="select * from "+ResourcePurchaseEntry.TABLE_NAME+";";
-		else
-			code="select * from "+ResourcePurchaseEntry.TABLE_NAME+" where "+ResourcePurchaseEntry.RESOURCE_PURCHASE_TYPE+"='"+type+"';";
-
-        Cursor cursor = db.rawQuery(code, null);
-		if(cursor == null || cursor.getCount() < 1 )
-			return list;
-
-        while(cursor.moveToNext()){
-			LocalResourcePurchase m=new LocalResourcePurchase();
-			m.setpId(cursor.getInt(cursor.getColumnIndex(ResourcePurchaseEntry._ID)));
-			m.setResourceId(cursor.getInt(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_RESID)));
-			m.setType(cursor.getString(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_TYPE)));
-			m.setQuantifier(cursor.getString(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_QUANTIFIER)));
-			m.setQty(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_QTY)));
-			m.setCost(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_COST)));
-			m.setQtyRemaining(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_REMAINING)));
-            m.setDate(cursor.getLong(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_DATE)));
-			list.add(m);
-		}
-
-        cursor.close();
-        return list;
-	}
-
-    public static List<LocalResourcePurchase> getResourcePurchases(SQLiteDatabase db, DbHelper dbh,ArrayList<LocalResourcePurchase>list,int resId){
-		if (list == null)list = new ArrayList<>();
-
-        String code = "select * from "+ResourcePurchaseEntry.TABLE_NAME+" where "+ResourcePurchaseEntry.RESOURCE_PURCHASE_RESID+"="+resId+";";
-		Cursor cursor =db.rawQuery(code, null);
-		if(cursor.getCount()<1)
-			return list;
-		while(cursor.moveToNext()){
-			LocalResourcePurchase m=new LocalResourcePurchase();
-			m.setpId(cursor.getInt(cursor.getColumnIndex(ResourcePurchaseEntry._ID)));
-			m.setResourceId(cursor.getInt(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_RESID)));
-			m.setType(cursor.getString(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_TYPE)));
-			m.setQuantifier(cursor.getString(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_QUANTIFIER)));
-			m.setQty(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_QTY)));
-			m.setCost(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_COST)));
-			m.setQtyRemaining(cursor.getDouble(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_REMAINING)));
-			m.setDate(cursor.getLong(cursor.getColumnIndex(ResourcePurchaseEntry.RESOURCE_PURCHASE_DATE)));
-			list.add(m);
-		}
-        cursor.close();
-        return list;
-	}
-	
 	public static ResourcePurchase getARPurchase(SQLiteDatabase db, DbHelper dbh,int id){
 		String code="select * from "+ResourcePurchaseEntry.TABLE_NAME+" where "
 				+ResourcePurchaseEntry._ID+"="+id+";";
@@ -348,30 +346,8 @@ public class DbQuery {
         cursor.close();
 	}
 
-    public static List<LocalCycleUse> getCycleUseP(SQLiteDatabase db, DbHelper dbh,int purchaseId,ArrayList<LocalCycleUse> list,String type){
-		String code;
-		if(type==null)
-			code="select * from "+CycleResourceEntry.TABLE_NAME+" where "+CycleResourceEntry.CYCLE_RESOURCE_PURCHASE_ID+"="+purchaseId+";";
-		else
-			code="select * from "+CycleResourceEntry.TABLE_NAME+" where "+CycleResourceEntry.CYCLE_RESOURCE_PURCHASE_ID+"="+purchaseId+" and "+CycleResourceEntry.CYCLE_RESOURCE_TYPE+"='"+type+"';";
-		Cursor cursor=db.rawQuery(code, null);
-		if(cursor.getCount()<1)
-			return list;
-		while(cursor.moveToNext()){
-			LocalCycleUse l=new LocalCycleUse();
-			l.setId(cursor.getInt(cursor.getColumnIndex(CycleResourceEntry._ID)));
-			l.setAmount(cursor.getDouble(cursor.getColumnIndex(CycleResourceEntry.CYCLE_RESOURCE_QTY)));
-			l.setCycleid(cursor.getInt(cursor.getColumnIndex(CycleResourceEntry.CYCLE_RESOURCE_CYCLEID)));
-			l.setPurchaseId(cursor.getInt(cursor.getColumnIndex(CycleResourceEntry.CYCLE_RESOURCE_PURCHASE_ID)));
-			l.setResource(cursor.getString(cursor.getColumnIndex(CycleResourceEntry.CYCLE_RESOURCE_TYPE)));
-			l.setUseCost(cursor.getDouble(cursor.getColumnIndex(CycleResourceEntry.CYCLE_RESOURCE_USECOST)));
-			list.add(l);
-		}
-        cursor.close();
-        return list;
-	}
-	
-	public static CycleUse getACycleUse(SQLiteDatabase db, DbHelper dbh,int id){
+
+    public static CycleUse getACycleUse(SQLiteDatabase db, DbHelper dbh,int id){
 		String code="select * from "+CycleResourceEntry.TABLE_NAME+" where "+CycleResourceEntry._ID+"="+id+";";
 		Cursor cursor=db.rawQuery(code, null);
 		if(cursor.getCount()<1)
@@ -421,6 +397,9 @@ public class DbQuery {
 
 	//can be used for all tables so far
 	public static void deleteRecord(SQLiteDatabase db,DbHelper dbh,String table,int id)throws Exception{
+        ResourceContract r = new ResourceContract(db);
+
+
         if(table.equals(UpdateAccountContract.UpdateAccountEntry.TABLE_NAME)){
             db.delete(table, UpdateAccountContract.UpdateAccountEntry._ID+""+id, null);
         }
@@ -430,8 +409,8 @@ public class DbQuery {
 		else if(table.equals(ResourcePurchaseEntry.TABLE_NAME)){
             db.delete(table, ResourcePurchaseEntry._ID+"="+id, null);
         }
-		else if(table.equals(ResourceContract.ResourceEntry.TABLE_NAME)){
-            db.delete(table, ResourceContract.ResourceEntry._ID+"="+id, null);
+		else if(table.equals(ResourceContract.table)){
+		    new ResourceContract(db).delete(id);
         }
 		else if(table.equals(CycleResourceEntry.TABLE_NAME))
 		{
@@ -440,8 +419,8 @@ public class DbQuery {
 		else if(table.equals(RedoLogEntry.TABLE_NAME)){
 			db.delete(table,RedoLogEntry._ID+"="+id, null);
 		}
-		else if(table.equals((CloudKeyEntry.TABLE_NAME))){
-			db.delete(table,CloudKeyEntry._ID+"="+id, null);
+		else if(table.equals((CloudKeyContract.table))){
+		    new CloudKeyContract(db).delete(id);
 		}
 		else{
             throw new Exception("no contract defined for this table");
@@ -449,48 +428,33 @@ public class DbQuery {
 
 	}
 
-//	public static void insertAccountTask(SQLiteDatabase db,UpAcc acc){
-//		ContentValues cv=new ContentValues();
-//		cv.put(UpdateAccountContract.UpdateAccountEntry.UPDATE_ACCOUNT_CLOUD_KEY, acc.getKeyrep());
-//		cv.put(UpdateAccountContract.UpdateAccountEntry.UPDATE_ACCOUNT_ACC,acc.getAcc());
-//		cv.put(UpdateAccountContract.UpdateAccountEntry.UPDATE_ACCOUNT_UPDATED, acc.getLastUpdated());
-//		cv.put(UpdateAccountContract.UpdateAccountEntry.UPDATE_ACCOUNT_SIGNEDIN,acc.getSignedIn());
-//		db.insert(UpdateAccountContract.UpdateAccountEntry.TABLE_NAME, null, cv);
-//	}
-
 	public static void insertCloudKey(SQLiteDatabase db,DbHelper dbh, String table, String k,int id){
-		ContentValues cv = new ContentValues();
-		cv.put(CloudKeyEntry.CLOUD_KEY_TABLE, table);
-		cv.put(CloudKeyEntry.CLOUD_KEY, k);
-		cv.put(CloudKeyEntry.CLOUD_KEY_ROWID, id);
-		db.insert(CloudKeyEntry.TABLE_NAME, null, cv);
+        new CloudKeyContract(db, k, id, table).insert();
 	}
 
     public static String getKey(SQLiteDatabase db,DbHelper dbh,String table,int id){
-		String code="select * from "+CloudKeyEntry.TABLE_NAME+" where "
-			+CloudKeyEntry.CLOUD_KEY_TABLE+"='"+table+"' and "
-			+CloudKeyEntry.CLOUD_KEY_ROWID+"="+id+";";
+		String code="select * from "+CloudKeyContract.table+" where ctable='"+table+"' and rowid="+id+";";
 		Cursor cursor = db.rawQuery(code, null);
 		if(cursor.getCount()<1){
 			return null;
 		}
 		cursor.moveToFirst();
-		String res =  cursor.getString(cursor.getColumnIndex(CloudKeyEntry.CLOUD_KEY));
+		String res =  cursor.getString(cursor.getColumnIndex(CloudKeyContract.cloudKey));
         cursor.close();
         return res;
 	}
 
-    public static int getCloudKeyId(SQLiteDatabase db,DbHelper dbh,String table,int id){String code="select * from "+CloudKeyEntry.TABLE_NAME+" where "
-			+CloudKeyEntry.CLOUD_KEY_TABLE+"='"+table+"' and "
-			+CloudKeyEntry.CLOUD_KEY_ROWID+"="+id+";";
+    public static int getCloudKeyId(SQLiteDatabase db,DbHelper dbh,String table,int id){
+        String code="select * from "+CloudKeyContract.table+" where ctable='"+table+"' and " +"rowid="+id+";";
 		Cursor cursor=db.rawQuery(code, null);
 		if(cursor.getCount()<1)
 			return -1;
 		cursor.moveToFirst();
-		int res = cursor.getInt(cursor.getColumnIndex(CloudKeyEntry._ID));
+		int res = cursor.getInt(cursor.getColumnIndex(CloudKeyContract._ID));
         cursor.close();
         return res;
 	}
+
 	public static Cycle getCycle(SQLiteDatabase db,DbHelper dbh,int id){
 		String code="select * from "+CycleEntry.TABLE_NAME+" where "+CycleEntry._ID+"="+id+";";
 		Cursor cursor = db.rawQuery(code, null);
@@ -629,7 +593,6 @@ public class DbQuery {
 		}
 	}
 
-
     //checks to see if there are any crop cycles or not
     public static boolean cyclesExist(SQLiteDatabase db){
         String code="select COUNT(*) FROM "+CycleEntry.TABLE_NAME;
@@ -651,6 +614,23 @@ public class DbQuery {
         }
         c.close();
         return res;
+    }
+
+    public static boolean resourceExistByName(SQLiteDatabase db, DbHelper dbh, String name){
+//        name = name.toLowerCase();
+//        String code = "SELECT name from " + ResourceContract.ResourceEntry.TABLE_NAME +  " WHERE LOWER(" + ResourceContract.ResourceEntry.RESOURCES_NAME + ") LIKE '%"+name+"%';";
+//        Cursor cursor = db.rawQuery(code, null);
+
+        ResourceContract r = new ResourceContract(db);
+        Cursor cursor = r.getByName(name);
+
+        if (cursor.getCount() >= 1){
+            while(cursor.moveToNext()){
+                String res = cursor.getString(cursor.getColumnIndex("name"));
+                if (res.equalsIgnoreCase(name))return true;
+            }
+        }
+        return false;
     }
 
     public static boolean resourceExist(SQLiteDatabase db, String type){

@@ -1,25 +1,58 @@
 package uwi.dcit.AgriExpenseTT.models;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 
-public class CloudKeyContract {
-	private static final String TEXT_TYPE = " TEXT";
-	private static final String INT_TYPE = " INTEGER";
-	private static final String COMMA_SEP = ",";
-	public static final String SQL_CREATE_CLOUD_KEY = 
-			"CREATE TABLE IF NOT EXISTS " + CloudKeyEntry.TABLE_NAME +"("
-			+CloudKeyEntry._ID + " integer primary key autoincrement,"
-			+CloudKeyEntry.CLOUD_KEY + TEXT_TYPE + COMMA_SEP
-			+CloudKeyEntry.CLOUD_KEY_ROWID + INT_TYPE + COMMA_SEP
-			+CloudKeyEntry.CLOUD_KEY_TABLE + TEXT_TYPE +");";
-	
-	public static final String SQL_DELETE_CLOUD_KEY = "DROP TABLE IF EXISTS "+ CloudKeyEntry.TABLE_NAME;
+public class CloudKeyContract extends SQLiteDBModel{
 
-	public static abstract class CloudKeyEntry implements BaseColumns{
-		public static final String TABLE_NAME="cloudKey";
-		public static final String CLOUD_KEY="key";
-		public static final String CLOUD_KEY_TABLE="ctable";
-//		public static final String CLOUD_KEY_ID="id";
-		public static final String CLOUD_KEY_ROWID="rowid";
-	}
+    public static String table = "cloudKey";
+    public static String cloudKey = "key";
+    private String ctable;
+    private String name;
+    private int id;
+
+    private SQLiteDatabase db;
+
+    public CloudKeyContract(SQLiteDatabase db) {
+        this.db = db;
+    }
+
+    public CloudKeyContract(SQLiteDatabase db, String k, int id, String table) {
+        this.name = k;
+        this.id = id;
+        this.db = db;
+        this.ctable = table;
+    }
+
+    @Override
+    protected ContentValues getContentValues() {
+        ContentValues cv = new ContentValues();
+        cv.put("ctable", ctable);
+        cv.put("key", name);
+        cv.put("rowid", id);
+        return cv;
+    }
+
+    @Override
+    protected String getTable() {
+        return table;
+    }
+
+    @Override
+    protected SQLiteDatabase getDB() {
+        return db;
+    }
+
+    @Override
+    protected String getName() {
+        return name;
+    }
+
+    @Override
+    public int init(){
+        db.execSQL("CREATE TABLE IF NOT EXISTS cloudKey("+_ID + " integer primary key autoincrement, `key` TEXT, `rowid` INTEGER, `ctable` TEXT)");
+        return 0;
+    }
+
 }

@@ -16,7 +16,8 @@ import java.util.Iterator;
 import uwi.dcit.AgriExpenseTT.helpers.DbHelper;
 import uwi.dcit.AgriExpenseTT.helpers.DbQuery;
 import uwi.dcit.AgriExpenseTT.helpers.TransactionLog;
-import uwi.dcit.AgriExpenseTT.models.CloudKeyContract.CloudKeyEntry;
+import uwi.dcit.AgriExpenseTT.models.CloudKeyContract;
+
 import uwi.dcit.AgriExpenseTT.models.CycleContract.CycleEntry;
 import uwi.dcit.AgriExpenseTT.models.CycleResourceContract.CycleResourceEntry;
 import uwi.dcit.AgriExpenseTT.models.RedoLogContract.RedoLogEntry;
@@ -511,7 +512,7 @@ public class CloudInterface {
 					if (id != -1) {
 						//remove key of cycle that was deleted from cloud
 						try {
-							DbQuery.deleteRecord(db, dbh, CloudKeyEntry.TABLE_NAME, id);
+							DbQuery.deleteRecord(db, dbh, CloudKeyContract.table, id);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -605,7 +606,7 @@ public class CloudInterface {
 					if (id != -1) {
 						//remove key of cycle that was deleted from cloud
 						try {
-							DbQuery.deleteRecord(db, dbh, CloudKeyEntry.TABLE_NAME, id);
+							DbQuery.deleteRecord(db, dbh, CloudKeyContract.table, id);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -674,7 +675,7 @@ public class CloudInterface {
 					int id = DbQuery.getCloudKeyId(db, dbh, ResourcePurchaseEntry.TABLE_NAME, rowId);
 					if (id != -1) {//if the key exists
 						try {
-							DbQuery.deleteRecord(db, dbh, CloudKeyEntry.TABLE_NAME, id);
+							DbQuery.deleteRecord(db, dbh, CloudKeyContract.table, id);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
