@@ -168,7 +168,7 @@ public class DbHelper extends SQLiteOpenHelper{
 		db.execSQL("DROP TABLE IF EXISTS " + UpdateAccountContract.UpdateAccountEntry.TABLE_NAME + "_orig");
 	}
 	
-	private void createDb(SQLiteDatabase db) {
+	private void createDb(SQLiteDatabase db) {//...
 		createResources(db);
 		createCropCycle(db);
 		createResourcePurchases(db);
@@ -184,7 +184,7 @@ public class DbHelper extends SQLiteOpenHelper{
 		createCounties(db);
 	}
 	
-	private void dropTables(SQLiteDatabase db) {
+	private void dropTables(SQLiteDatabase db) {//...
 		db.beginTransaction();
 
 		db.execSQL(CycleResourceContract.SQL_DELETE_CYCLE_RESOURCE);
@@ -270,7 +270,7 @@ public class DbHelper extends SQLiteOpenHelper{
 		}
 	}
 	
-	private void updateCropList(SQLiteDatabase db) {
+	private void updateCropList(SQLiteDatabase db) {//...
 		//VEGETABLES
 		DbQuery.insertResource(db, this, DHelper.cat_plantingMaterial, "BHAGI");
 		DbQuery.insertResource(db, this, DHelper.cat_plantingMaterial, "BORA (BODI) BEAN");

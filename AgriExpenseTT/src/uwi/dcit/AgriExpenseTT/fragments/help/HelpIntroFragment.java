@@ -3,6 +3,7 @@ package uwi.dcit.AgriExpenseTT.fragments.help;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.res.ResourcesCompat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,7 +14,7 @@ import android.widget.TextView;
 import uwi.dcit.AgriExpenseTT.R;
 import uwi.dcit.AgriExpenseTT.helpers.GAnalyticsHelper;
 
-public class HelpIntroFragment extends Fragment{
+public class HelpIntroFragment extends HelpMenuItem {//Fragment{
 	final static String ARG_POSITION = "position";
 	View view;
 	
@@ -22,7 +23,7 @@ public class HelpIntroFragment extends Fragment{
 		view =  inflater.inflate(R.layout.fragment_help_article_view, container, false);
 		
 		TextView txtHeading = (TextView)view.findViewById(R.id.article_heading);
-		txtHeading.setText("Introduction");
+		txtHeading.setText("Introduction To David Edit 6");
 		
 		ImageView img = (ImageView)view.findViewById(R.id.article_image);
 //		img.setImageDrawable(getResources().getDrawable(R.drawable.help_homescreen));
@@ -35,7 +36,18 @@ public class HelpIntroFragment extends Fragment{
         GAnalyticsHelper.getInstance(this.getActivity()).sendScreenView("Help Intro Fragment");
 		return view;
 	}
-	
+	public void addToHelpList(){
+
+
+
+		FragmentManager manager = getActivity().getSupportFragmentManager();
+//		 getFragmentManager()
+		manager.beginTransaction()
+				.replace(R.id.help_lists, this)
+				.addToBackStack("Help List")
+				.commitNow();
+
+	}
 	@Override
     public void onStart() {
 		super.onStart();

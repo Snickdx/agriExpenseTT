@@ -12,7 +12,7 @@ import android.widget.TextView;
 import uwi.dcit.AgriExpenseTT.R;
 import uwi.dcit.AgriExpenseTT.helpers.GAnalyticsHelper;
 
-public class HelpManageResourceFragment extends Fragment {
+public class HelpManageResourceFragment extends HelpMenuItem {//Fragment {
 
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -53,5 +53,11 @@ public class HelpManageResourceFragment extends Fragment {
         GAnalyticsHelper.getInstance(this.getActivity()).sendScreenView("Help Manage Resources Fragment");
 		return view;
 	}
-	
+	public void addToHelpList(){
+		getFragmentManager()
+				.beginTransaction()
+				.replace(R.id.help_lists, this)
+				.addToBackStack("Help List")
+				.commit();
+	}
 }

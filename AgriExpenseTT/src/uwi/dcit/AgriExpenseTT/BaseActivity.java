@@ -36,7 +36,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
         isTablet = this.getResources().getBoolean(R.bool.isTablet);
     }
 
-    public void setupNavDrawer(){
+    public void setupNavDrawer(){//... chaining
         mNavigationDrawerFragment = (NavigationDrawerFragment)getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         if (mNavigationDrawerFragment != null)
             mNavigationDrawerFragment.setUp( R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
@@ -44,7 +44,14 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
 
 
     @Override
-    public void onNavigationDrawerItemSelected(int position) {
+    public void onNavigationDrawerItemSelected(int position) {//... here we use cases wrong
+        /*
+            Strategy s = FS.get(position);
+            s.do();
+
+        */
+
+
         switch (position) { // Check to ensure that the we are not relaunching the current activity
             case 0:// Home
                 if (!(this instanceof Main))
