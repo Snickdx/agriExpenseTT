@@ -49,6 +49,7 @@ public class DbHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+
         Log.i(TAG_NAME, "Creating AgriExpense DB for first time");
         createDb(db);
         populate(db, new TransactionLog(this,db,ctx));
@@ -137,19 +138,16 @@ public class DbHelper extends SQLiteOpenHelper{
 
     private void createBackup(SQLiteDatabase db){
 //		db.execSQL("ALTER TABLE " + ResourceContract.ResourceEntry.TABLE_NAME + " RENAME TO " + ResourceContract.ResourceEntry.TABLE_NAME + "_orig");
-        ResourceContract r = new ResourceContract(db);
-        r.backup();
+        new ResourceContract(db).backup();
+        new CloudKeyContract(db).backup();
 
         db.execSQL("ALTER TABLE " + CycleContract.CycleEntry.TABLE_NAME + " RENAME TO " + CycleContract.CycleEntry.TABLE_NAME + "_orig");
         db.execSQL("ALTER TABLE " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + " RENAME TO " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + "_orig");
         db.execSQL("ALTER TABLE " + CycleResourceEntry.TABLE_NAME + " RENAME TO " + CycleResourceEntry.TABLE_NAME + "_orig");
         // db.execSQL("ALTER TABLE " + LabourEntry.TABLE_NAME + "RENAME TO " + LabourEntry.TABLE_NAME + "_orig");
-
-        db.execSQL("ALTER TABLE " + CloudKeyContract.CloudKeyEntry.TABLE_NAME + " RENAME TO " + CloudKeyContract.CloudKeyEntry.TABLE_NAME + "_orig");
         db.execSQL("ALTER TABLE " + RedoLogEntry.TABLE_NAME + " RENAME TO " + RedoLogEntry.TABLE_NAME + "_orig");
         db.execSQL("ALTER TABLE " + TransactionLogEntry.TABLE_NAME + " RENAME TO " + TransactionLogEntry.TABLE_NAME + "_orig");
         db.execSQL("ALTER TABLE " + UpdateAccountContract.UpdateAccountEntry.TABLE_NAME + " RENAME TO " + UpdateAccountContract.UpdateAccountEntry.TABLE_NAME + "_orig");
-
         // db.execSQL("ALTER TABLE " + CountryEntry.TABLE_NAME + " RENAME TO " + CountryEntry.TABLE_NAME + "_orig");
         // db.execSQL("ALTER TABLE " + CountyEntry.TABLE_NAME + " RENAME TO " + CountyEntry.TABLE_NAME + "_orig");
     }
@@ -161,7 +159,7 @@ public class DbHelper extends SQLiteOpenHelper{
         db.execSQL("INSERT INTO " + CycleResourceEntry.TABLE_NAME + "(" + CycleResourceEntry._ID  + ", pId, type, qty, quantifier, cycleId, useCost) SELECT _id, pId, type, qty, quantifier, cycleId, useCost FROM  " + CycleResourceEntry.TABLE_NAME + "_orig");
         // db.execSQL("INSERT INTO " + LabourEntry.TABLE_NAME + "(" + LabourEntry._ID  + ", labour, name) SELECT id, labour, name FROM  " + LabourEntry.TABLE_NAME + "_orig");
 
-        db.execSQL("INSERT INTO " + CloudKeyContract.CloudKeyEntry.TABLE_NAME + "(" + CloudKeyContract.CloudKeyEntry._ID  + ", key, ctable, rowid ) SELECT _id, key, ctable, rowid  FROM " + CloudKeyContract.CloudKeyEntry.TABLE_NAME + "_orig");
+        db.execSQL("INSERT INTO " + CloudKeyContract.table + "(" + CloudKeyContract._ID  + ", key, ctable, rowid ) SELECT _id, key, ctable, rowid  FROM " + CloudKeyContract.table + "_orig");
         db.execSQL("INSERT INTO " + RedoLogEntry.TABLE_NAME + "(" + RedoLogEntry._ID  + ", redotable, row_id, operation)  SELECT _id, redotable, row_id, operation FROM " + RedoLogEntry.TABLE_NAME + "_orig");
         db.execSQL("INSERT INTO " + TransactionLogEntry.TABLE_NAME + "(" + TransactionLogEntry._ID  + ", transtable, rowid, operation, transtime)  SELECT _id, transtable, rowid, operation, transtime FROM  " + TransactionLogEntry.TABLE_NAME + "_orig");
         db.execSQL("INSERT INTO " + UpdateAccountContract.UpdateAccountEntry.TABLE_NAME + "(" + UpdateAccountContract.UpdateAccountEntry._ID  + ", acc, county, address, lastUpdated, signedIn, cloudKey)  SELECT _id, acc, county, address, lastUpdated, signedIn, cloudKey FROM " + UpdateAccountContract.UpdateAccountEntry.TABLE_NAME + "_orig");
@@ -171,14 +169,12 @@ public class DbHelper extends SQLiteOpenHelper{
     }
 
     private void dropBackups(SQLiteDatabase db){
-        ResourceContract r = new ResourceContract(db);
-        r.deleteBackup();
+        new ResourceContract(db).deleteBackup();
+        new CloudKeyContract(db).deleteBackup();
         db.execSQL("DROP TABLE IF EXISTS " + CycleContract.CycleEntry.TABLE_NAME + "_orig");
         db.execSQL("DROP TABLE IF EXISTS " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + "_orig");
         db.execSQL("DROP TABLE IF EXISTS " + CycleResourceEntry.TABLE_NAME + "_orig");
         // db.execSQL("DROP TABLE IF EXISTS " + LabourEntry.TABLE_NAME + "_orig");
-
-        db.execSQL("DROP TABLE IF EXISTS " + CloudKeyContract.CloudKeyEntry.TABLE_NAME + "_orig");
         db.execSQL("DROP TABLE IF EXISTS " + RedoLogEntry.TABLE_NAME + "_orig");
         db.execSQL("DROP TABLE IF EXISTS " + TransactionLogEntry.TABLE_NAME + "_orig");
         db.execSQL("DROP TABLE IF EXISTS " + UpdateAccountContract.UpdateAccountEntry.TABLE_NAME + "_orig");
@@ -203,13 +199,14 @@ public class DbHelper extends SQLiteOpenHelper{
         db.execSQL(CycleResourceContract.SQL_DELETE_CYCLE_RESOURCE);
         db.execSQL(ResourcePurchaseContract.SQL_DELETE_RESOURCE_PURCHASE);
         db.execSQL(CycleContract.SQL_DELETE_CYCLE);
-        db.execSQL(CloudKeyContract.SQL_DELETE_CLOUD_KEY);
+
         db.execSQL(RedoLogContract.SQL_DELETE_REDO_LOG);
         db.execSQL(TransactionLogContract.SQL_DELETE_TRANSACTION_LOG);
         db.execSQL(UpdateAccountContract.SQL_DELETE_UPDATE_ACCOUNT);
         db.setTransactionSuccessful();
         db.endTransaction();
 
+        new CloudKeyContract(db).flush();
         new ResourceContract(db).flush();
         new CountryContract(db).flush();
         new CountyContract(db).flush();
@@ -232,7 +229,9 @@ public class DbHelper extends SQLiteOpenHelper{
 
     private void createUpdateAccount(SQLiteDatabase db){db.execSQL(UpdateAccountContract.SQL_CREATE_UPDATE_ACCOUNT);}
 
-    private void createCloudKeys(SQLiteDatabase db) {db.execSQL(CloudKeyContract.SQL_CREATE_CLOUD_KEY);}
+    private void createCloudKeys(SQLiteDatabase db) {
+        new CloudKeyContract(db).init();
+    }
 
     private void createCropCycle(SQLiteDatabase db) {
         db.execSQL(CycleContract.SQL_CREATE_CYCLE);

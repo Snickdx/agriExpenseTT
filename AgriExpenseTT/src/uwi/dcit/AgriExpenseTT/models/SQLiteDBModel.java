@@ -50,7 +50,7 @@ public abstract class SQLiteDBModel implements DBModel, BaseColumns {
     @Override
     public int delete(int rId) {
         SQLiteDatabase db = getDB();
-        db.delete(getName(), getID()+"="+rId, null);
+        db.delete(getName(), _ID+"="+rId, null);
         return 0;
     }
 
