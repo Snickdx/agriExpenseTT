@@ -181,17 +181,21 @@ public class DbHelper extends SQLiteOpenHelper{
     }
 
     private void createDb(SQLiteDatabase db) {
-        createResources(db);
         createCropCycle(db);
         createResourcePurchases(db);
         createResourceUse(db);
+
+
         createLabour(db);
-        createCloudKeys(db);
+
         createRedoLog(db);
         createTransactionLog(db);
         createUpdateAccount(db);
-        createCountries(db);
-        createCounties(db);
+
+        for (SQLiteDBModel model : SQLiteModelFactory.getInstance(db).contractTypes) {
+            model.init();
+        }
+
     }
 
     private void dropTables(SQLiteDatabase db) {
@@ -199,17 +203,16 @@ public class DbHelper extends SQLiteOpenHelper{
         db.execSQL(CycleResourceContract.SQL_DELETE_CYCLE_RESOURCE);
         db.execSQL(ResourcePurchaseContract.SQL_DELETE_RESOURCE_PURCHASE);
         db.execSQL(CycleContract.SQL_DELETE_CYCLE);
-
         db.execSQL(RedoLogContract.SQL_DELETE_REDO_LOG);
         db.execSQL(TransactionLogContract.SQL_DELETE_TRANSACTION_LOG);
         db.execSQL(UpdateAccountContract.SQL_DELETE_UPDATE_ACCOUNT);
         db.setTransactionSuccessful();
         db.endTransaction();
 
-        new CloudKeyContract(db).flush();
-        new ResourceContract(db).flush();
-        new CountryContract(db).flush();
-        new CountyContract(db).flush();
+        for (SQLiteDBModel model : SQLiteModelFactory.getInstance(db).contractTypes) {
+           model.flush();
+        }
+
     }
 
     private boolean columnExists(SQLiteDatabase db, String tableName, String columnName){
@@ -229,14 +232,14 @@ public class DbHelper extends SQLiteOpenHelper{
 
     private void createUpdateAccount(SQLiteDatabase db){db.execSQL(UpdateAccountContract.SQL_CREATE_UPDATE_ACCOUNT);}
 
-    private void createCloudKeys(SQLiteDatabase db) {
-        new CloudKeyContract(db).init();
-    }
 
     private void createCropCycle(SQLiteDatabase db) {
         db.execSQL(CycleContract.SQL_CREATE_CYCLE);
     }
 
+    private void createRedoLog(SQLiteDatabase db) {
+        db.execSQL(RedoLogContract.SQL_CREATE_REDO_LOG);
+    }
 
     private void createTransactionLog(SQLiteDatabase db) {db.execSQL(TransactionLogContract.SQL_CREATE_TRANSACTION_LOG);}
 
@@ -244,16 +247,10 @@ public class DbHelper extends SQLiteOpenHelper{
 
     private void createResourceUse(SQLiteDatabase db) {db.execSQL(CycleResourceContract.SQL_CREATE_CYCLE_RESOURCE);}
 
-    private void createRedoLog(SQLiteDatabase db) {
-        db.execSQL(RedoLogContract.SQL_CREATE_REDO_LOG);
-    }
-
-    private void createResources(SQLiteDatabase db) {
-        new ResourceContract(db).init();
-    }
 
     private void createCountries(SQLiteDatabase db) {
-        new CountryContract(db).init();}
+        new CountryContract(db).init();
+    }
 
     private void createCounties(SQLiteDatabase db) {
         new CountyContract(db).init();
@@ -262,6 +259,8 @@ public class DbHelper extends SQLiteOpenHelper{
     private void createLabour(SQLiteDatabase db) {
         db.execSQL(LabourContract.SQL_CREATE_LABOUR);
     }
+
+
 
 
 
@@ -288,9 +287,6 @@ public class DbHelper extends SQLiteOpenHelper{
 //        defaults.add(cf.createContract("Fertilizer","PLANT BOOSTER"));
 //        defaults.add(cf.createContract("Fertilizer","MIRACLE GRO ALL PROPOSE PLANT FOOD"));
 //        defaults.add(cf.createContract("Fertilizer","SCOTTS FLOWER AND VEGETABLE PLANT FOOD"));
-//
-//
-//
 //
 //    }
 
