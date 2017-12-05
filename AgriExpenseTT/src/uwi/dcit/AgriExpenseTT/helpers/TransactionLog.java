@@ -464,7 +464,7 @@ public class TransactionLog {
 	}
 	public void logUpdateLocal(TransLog t,String namespace){
 		ContentValues cv=new ContentValues();
-		if(t.getTableKind().equals(CycleContract.CycleEntry.TABLE_NAME)){
+		if(t.getTableKind().equals(CycleContract.table)){
 			Cycle c=getCycle2(namespace,t.getRowId());
 			if(c!=null) {
 				Log.i("CHECKKK", "Transaction:" + t);
@@ -479,9 +479,9 @@ public class TransactionLog {
 				cv.put(CycleContract.CycleEntry.CROPCYCLE_HARVEST_AMT, c.getHarvestAmt());
 				cv.put(CycleContract.CycleEntry.CROPCYCLE_COSTPER, c.getCostPer());
 				cv.put(CycleContract.CycleEntry.CROPCYCLE_CLOSED, c.getClosed());
-				db.update(CycleContract.CycleEntry.TABLE_NAME, cv, CycleContract.CycleEntry._ID + "=" + t.getRowId(), null);
+				db.update(CycleContract.table, cv, CycleContract.CycleEntry._ID + "=" + t.getRowId(), null);
 			}
-			insertTransLog(CycleContract.CycleEntry.TABLE_NAME,t.getRowId(),TransactionLog.TL_UPDATE );
+			insertTransLog(CycleContract.table,t.getRowId(),TransactionLog.TL_UPDATE );
 		}
 		else if(t.getTableKind().equals(ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME)){
 			ResourcePurchase p=getPurchase2(namespace, t.getRowId());
@@ -612,7 +612,7 @@ public class TransactionLog {
 	
 	public void updateCloud_(TransLog t){
 		//get obj from cloud
-		if(t.getTableKind().equals(CycleContract.CycleEntry.TABLE_NAME)){
+		if(t.getTableKind().equals(CycleContract.table)){
 			CycleApi.Builder builder = new CycleApi.Builder(
 			         AndroidHttp.newCompatibleTransport(), new JacksonFactory(),
 			         null);         

@@ -18,6 +18,7 @@ import uwi.dcit.AgriExpenseTT.helpers.DbQuery;
 import uwi.dcit.AgriExpenseTT.helpers.TransactionLog;
 import uwi.dcit.AgriExpenseTT.models.CloudKeyContract;
 
+import uwi.dcit.AgriExpenseTT.models.CycleContract;
 import uwi.dcit.AgriExpenseTT.models.CycleContract.CycleEntry;
 import uwi.dcit.AgriExpenseTT.models.CycleResourceContract.CycleResourceEntry;
 import uwi.dcit.AgriExpenseTT.models.RedoLogContract.RedoLogEntry;
@@ -179,7 +180,7 @@ public class CloudInterface {
 			CycleApi endpoint = builder.build();
 			ArrayList<Integer> rowIds = new ArrayList<>();
 			ArrayList<Integer> logIds = new ArrayList<>();
-			DbQuery.getRedo(db, dbh, rowIds, logIds, TransactionLog.TL_UPDATE, CycleEntry.TABLE_NAME);
+			DbQuery.getRedo(db, dbh, rowIds, logIds, TransactionLog.TL_UPDATE, CycleContract.table);
 			Iterator<Integer> logI=logIds.iterator();
 			Iterator<Integer> rowI=rowIds.iterator();
 			while(logI.hasNext()){
@@ -214,7 +215,7 @@ public class CloudInterface {
 						e.printStackTrace();
 					}
 					//getting the transaction from the transaction log that matches this operation
-					String code = "select * from " + TransactionLogEntry.TABLE_NAME + " where " + TransactionLogEntry.TRANSACTION_LOG_TABLE + "='" + CycleEntry.TABLE_NAME + "' and "
+					String code = "select * from " + TransactionLogEntry.TABLE_NAME + " where " + TransactionLogEntry.TRANSACTION_LOG_TABLE + "='" + CycleContract.table + "' and "
 							+ TransactionLogEntry.TRANSACTION_LOG_ROWID + "=" + rowId + " and " + TransactionLogEntry.TRANSACTION_LOG_OPERATION + "='" + TransactionLog.TL_UPDATE + "'";
 					Cursor cursor = db.rawQuery(code, null);
 					//select from transaction log
@@ -310,7 +311,7 @@ public class CloudInterface {
 			ArrayList<Integer> rowIds = new ArrayList<>();
 			ArrayList<Integer> logIds = new ArrayList<>();
 
-			DbQuery.getRedo(db, dbh, rowIds, logIds, TransactionLog.TL_INS, CycleEntry.TABLE_NAME);
+			DbQuery.getRedo(db, dbh, rowIds, logIds, TransactionLog.TL_INS, CycleContract.table);
 
 			Iterator<Integer> logI=logIds.iterator();
 			Iterator<Integer> rowI=rowIds.iterator();
@@ -335,13 +336,13 @@ public class CloudInterface {
 					//we stored they key as text in the account field of c when we returned
 					System.out.println(c.getAccount());
 					//store key of inserted cycle into cloud - cloud key table
-					DbQuery.insertCloudKey(db, dbh, CycleEntry.TABLE_NAME, c.getKeyrep(), rowId);
+					DbQuery.insertCloudKey(db, dbh, CycleContract.table, c.getKeyrep(), rowId);
 					//remove from redo log
 					try {
 						DbQuery.deleteRecord(db, dbh, RedoLogEntry.TABLE_NAME, logId);
                     }catch (Exception e){e.printStackTrace();}
 					//getting the transaction from the transaction log that matches this operation
-					String code = "select * from " + TransactionLogEntry.TABLE_NAME + " where " + TransactionLogEntry.TRANSACTION_LOG_TABLE + "='" + CycleEntry.TABLE_NAME + "' and "
+					String code = "select * from " + TransactionLogEntry.TABLE_NAME + " where " + TransactionLogEntry.TRANSACTION_LOG_TABLE + "='" + CycleContract.table + "' and "
 							+ TransactionLogEntry.TRANSACTION_LOG_ROWID + "=" + rowId + " and " + TransactionLogEntry.TRANSACTION_LOG_OPERATION + "='" + TransactionLog.TL_INS + "'";
 					Cursor cursor = db.rawQuery(code, null);
 					cursor.moveToFirst();
@@ -490,7 +491,7 @@ public class CloudInterface {
 			ArrayList<Integer> logIds = new ArrayList<>();
 
 			//DbQuery.getRedo(db, dbh, rowIds, logIds, TransactionLog.TL_INS, dbh.TABLE_RESOURCE_PURCHASES);
-			DbQuery.getRedo(db, dbh, rowIds, logIds, "del", CycleEntry.TABLE_NAME);
+			DbQuery.getRedo(db, dbh, rowIds, logIds, "del", CycleContract.table);
 			Iterator<Integer> logI = logIds.iterator();
 			Iterator<Integer> rowI = rowIds.iterator();
 			while (logI.hasNext()) {
@@ -498,7 +499,7 @@ public class CloudInterface {
 				Cycle c = new Cycle();
 				c.setId(rowId);
 				c.setAccount(DbQuery.getAccountName(db));
-				c.setKeyrep(DbQuery.getKey(db, dbh, CycleEntry.TABLE_NAME, rowId));
+				c.setKeyrep(DbQuery.getKey(db, dbh, CycleContract.table, rowId));
 				if (c.getId() != 0) {//was never inserted :o
 					try {
 						endpoint.removeCycle(c.getKeyrep(), c.getAccount()).execute();
@@ -508,7 +509,7 @@ public class CloudInterface {
 				}
 
 				if (c != null) {//transactioon was succesful or keyrep was not found
-					int id = DbQuery.getCloudKeyId(db, dbh, CycleEntry.TABLE_NAME, rowId);
+					int id = DbQuery.getCloudKeyId(db, dbh, CycleContract.table, rowId);
 					if (id != -1) {
 						//remove key of cycle that was deleted from cloud
 						try {
@@ -535,7 +536,7 @@ public class CloudInterface {
 						String tableName = cursor.getString(cursor.getColumnIndex(TransactionLogEntry.TRANSACTION_LOG_TABLE));
 						int i = cursor.getInt(cursor.getColumnIndex(TransactionLogEntry._ID));
 						Log.i("CHECKING", "FROM CURSOR" + i + "  FROM LOGID:" + logId + "  FROM ROWID" + rowId);
-						if (tableName.equals(CycleEntry.TABLE_NAME)) {
+						if (tableName.equals(CycleContract.table)) {
 							int Tid = cursor.getInt(cursor.getColumnIndex(TransactionLogEntry._ID));
 							Log.i("DELETING CYCLE", "DELETIONNNNNNNNN ID:" + Tid);
 							DbQuery.insertRedoLog(db, dbh, TransactionLogEntry.TABLE_NAME, Tid, TransactionLog.TL_INS);

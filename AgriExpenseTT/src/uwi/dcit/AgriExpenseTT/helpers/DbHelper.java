@@ -73,7 +73,7 @@ public class DbHelper extends SQLiteOpenHelper{
             this.dropTables(db);
             this.onCreate(db);
         }
-        if (oldVersion  <= 171 && !columnExists(db, CycleContract.CycleEntry.TABLE_NAME, CycleContract.CycleEntry._ID)) {
+        if (oldVersion  <= 171 && !columnExists(db, CycleContract.table, CycleContract.CycleEntry._ID)) {
 
             Log.d(TAG_NAME, "Running Update of table structure");
             this.tableColumnModify(db);
@@ -92,7 +92,7 @@ public class DbHelper extends SQLiteOpenHelper{
         if (oldVersion < 172){
             db.beginTransaction();
 
-            db.execSQL("ALTER TABLE " + CycleContract.CycleEntry.TABLE_NAME + " ADD COLUMN "+ CycleContract.CycleEntry.CROPCYCLE_NAME + " TEXT");
+            db.execSQL("ALTER TABLE " + CycleContract.table + " ADD COLUMN "+ CycleContract.CycleEntry.CROPCYCLE_NAME + " TEXT");
             // Place the resource name as the default name of the cycle
             updateCycleCropName(db);
 
@@ -141,7 +141,7 @@ public class DbHelper extends SQLiteOpenHelper{
         new ResourceContract(db).backup();
         new CloudKeyContract(db).backup();
 
-        db.execSQL("ALTER TABLE " + CycleContract.CycleEntry.TABLE_NAME + " RENAME TO " + CycleContract.CycleEntry.TABLE_NAME + "_orig");
+        db.execSQL("ALTER TABLE " + CycleContract.table + " RENAME TO " + CycleContract.CycleEntry.TABLE_NAME + "_orig");
         db.execSQL("ALTER TABLE " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + " RENAME TO " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + "_orig");
         db.execSQL("ALTER TABLE " + CycleResourceEntry.TABLE_NAME + " RENAME TO " + CycleResourceEntry.TABLE_NAME + "_orig");
         // db.execSQL("ALTER TABLE " + LabourEntry.TABLE_NAME + "RENAME TO " + LabourEntry.TABLE_NAME + "_orig");
@@ -154,7 +154,7 @@ public class DbHelper extends SQLiteOpenHelper{
 
     private void translateData(SQLiteDatabase db){
         db.execSQL("INSERT INTO " + ResourceContract.table + "(" + ResourceContract._ID  + ", name, type)  SELECT _id, name, type FROM  " + ResourceContract.table + "_orig");
-        db.execSQL("INSERT INTO " + CycleContract.CycleEntry.TABLE_NAME + "(" + CycleContract.CycleEntry._ID +", cropId, landType, landAmt, cycledate, tspent, hType, hAmt, costPer, county, cropName ) SELECT _id, cropId, landType, landAmt, cycledate, tspent, hType, hAmt, costPer, county, cropName FROM " + CycleContract.CycleEntry.TABLE_NAME + "_orig");
+        db.execSQL("INSERT INTO " + CycleContract.table + "(" + CycleContract.CycleEntry._ID +", cropId, landType, landAmt, cycledate, tspent, hType, hAmt, costPer, county, cropName ) SELECT _id, cropId, landType, landAmt, cycledate, tspent, hType, hAmt, costPer, county, cropName FROM " + CycleContract.CycleEntry.TABLE_NAME + "_orig");
         db.execSQL("INSERT INTO " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + "(" + ResourcePurchaseContract.ResourcePurchaseEntry._ID  + ", rId, type, quantifier, qty, cost, remaining, date, resource)  SELECT _id, rId, type, quantifier, qty, cost, remaining, date, resource FROM " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + "_orig");
         db.execSQL("INSERT INTO " + CycleResourceEntry.TABLE_NAME + "(" + CycleResourceEntry._ID  + ", pId, type, qty, quantifier, cycleId, useCost) SELECT _id, pId, type, qty, quantifier, cycleId, useCost FROM  " + CycleResourceEntry.TABLE_NAME + "_orig");
         // db.execSQL("INSERT INTO " + LabourEntry.TABLE_NAME + "(" + LabourEntry._ID  + ", labour, name) SELECT id, labour, name FROM  " + LabourEntry.TABLE_NAME + "_orig");
@@ -171,7 +171,7 @@ public class DbHelper extends SQLiteOpenHelper{
     private void dropBackups(SQLiteDatabase db){
         new ResourceContract(db).deleteBackup();
         new CloudKeyContract(db).deleteBackup();
-        db.execSQL("DROP TABLE IF EXISTS " + CycleContract.CycleEntry.TABLE_NAME + "_orig");
+        db.execSQL("DROP TABLE IF EXISTS " + CycleContract.table + "_orig");
         db.execSQL("DROP TABLE IF EXISTS " + ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME + "_orig");
         db.execSQL("DROP TABLE IF EXISTS " + CycleResourceEntry.TABLE_NAME + "_orig");
         // db.execSQL("DROP TABLE IF EXISTS " + LabourEntry.TABLE_NAME + "_orig");
@@ -198,7 +198,6 @@ public class DbHelper extends SQLiteOpenHelper{
         db.beginTransaction();
         db.execSQL(CycleResourceContract.SQL_DELETE_CYCLE_RESOURCE);
         db.execSQL(ResourcePurchaseContract.SQL_DELETE_RESOURCE_PURCHASE);
-        db.execSQL(CycleContract.SQL_DELETE_CYCLE);
 
         db.execSQL(RedoLogContract.SQL_DELETE_REDO_LOG);
         db.execSQL(TransactionLogContract.SQL_DELETE_TRANSACTION_LOG);
@@ -206,6 +205,7 @@ public class DbHelper extends SQLiteOpenHelper{
         db.setTransactionSuccessful();
         db.endTransaction();
 
+        new CycleContract(db).flush();
         new CloudKeyContract(db).flush();
         new ResourceContract(db).flush();
         new CountryContract(db).flush();
@@ -227,16 +227,29 @@ public class DbHelper extends SQLiteOpenHelper{
 
     //*************************** Creates Tables for Models
 
-    private void createUpdateAccount(SQLiteDatabase db){db.execSQL(UpdateAccountContract.SQL_CREATE_UPDATE_ACCOUNT);}
+
 
     private void createCloudKeys(SQLiteDatabase db) {
         new CloudKeyContract(db).init();
     }
 
     private void createCropCycle(SQLiteDatabase db) {
-        db.execSQL(CycleContract.SQL_CREATE_CYCLE);
+        new CycleContract(db).init();
     }
 
+    private void createResources(SQLiteDatabase db) {
+        new ResourceContract(db).init();
+    }
+
+    private void createCountries(SQLiteDatabase db) {
+        new CountryContract(db).init();
+    }
+
+    private void createCounties(SQLiteDatabase db) {
+        new CountyContract(db).init();
+    }
+
+    private void createUpdateAccount(SQLiteDatabase db){db.execSQL(UpdateAccountContract.SQL_CREATE_UPDATE_ACCOUNT);}
 
     private void createTransactionLog(SQLiteDatabase db) {db.execSQL(TransactionLogContract.SQL_CREATE_TRANSACTION_LOG);}
 
@@ -248,16 +261,6 @@ public class DbHelper extends SQLiteOpenHelper{
         db.execSQL(RedoLogContract.SQL_CREATE_REDO_LOG);
     }
 
-    private void createResources(SQLiteDatabase db) {
-        new ResourceContract(db).init();
-    }
-
-    private void createCountries(SQLiteDatabase db) {
-        new CountryContract(db).init();}
-
-    private void createCounties(SQLiteDatabase db) {
-        new CountyContract(db).init();
-    }
 
     private void createLabour(SQLiteDatabase db) {
         db.execSQL(LabourContract.SQL_CREATE_LABOUR);
@@ -416,7 +419,7 @@ public class DbHelper extends SQLiteOpenHelper{
     }
 
     private void updateCycleCropName(SQLiteDatabase db) {
-        Cursor cursor = db.rawQuery("SELECT * FROM " + CycleContract.CycleEntry.TABLE_NAME, null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + CycleContract.table, null);
         while(cursor.moveToNext()){
             ContentValues cv = new ContentValues();
             cv.put(CycleContract.CycleEntry.CROPCYCLE_NAME, cursor.getColumnIndex(CycleContract.CycleEntry.CROPCYCLE_RESOURCE));

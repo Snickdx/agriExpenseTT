@@ -13,6 +13,7 @@ import uwi.dcit.AgriExpenseTT.models.CountryContract;
 
 import uwi.dcit.AgriExpenseTT.models.CountyContract;
 
+import uwi.dcit.AgriExpenseTT.models.CycleContract;
 import uwi.dcit.AgriExpenseTT.models.CycleContract.CycleEntry;
 import uwi.dcit.AgriExpenseTT.models.CycleResourceContract.CycleResourceEntry;
 import uwi.dcit.AgriExpenseTT.models.LocalCycle;
@@ -115,9 +116,9 @@ public class DbQuery {
         cv.put(CycleEntry.CROPCYCLE_RESOURCE, DbQuery.findResourceName(db, dbh, cropId));
         cv.put(CycleEntry.CROPCYCLE_NAME, name);
 		cv.put(CycleEntry.CROPCYCLE_CLOSED, closed);
-        db.insert(CycleEntry.TABLE_NAME, null,cv);
-        int rowId=getLast(db, dbh, CycleEntry.TABLE_NAME);
-        tL.insertTransLog(CycleEntry.TABLE_NAME,rowId,TransactionLog.TL_INS );
+        db.insert(CycleContract.table, null,cv);
+        int rowId=getLast(db, dbh, CycleContract.table);
+        tL.insertTransLog(CycleContract.table,rowId,TransactionLog.TL_INS );
         return rowId;
     }
 	
@@ -175,7 +176,7 @@ public class DbQuery {
     public static List<LocalCycle> getCycles(SQLiteDatabase db, DbHelper dbh, ArrayList<LocalCycle> list){
         if (list == null)list = new ArrayList<>();
 
-        String code="select * from "+CycleEntry.TABLE_NAME+";";
+        String code="select * from "+CycleContract.table+";";
         Cursor cursor=db.rawQuery(code, null);
         if(cursor.getCount()<1)
             return list;
@@ -278,13 +279,26 @@ public class DbQuery {
         ResourceContract r = new ResourceContract(db);
         Cursor cursor = r.getByName(name);
 
-		if(cursor.getCount()<1)
-			return -1;
-		cursor.moveToFirst();
+        if(cursor.getCount()<1)
+            return -1;
+        cursor.moveToFirst();
         int res = cursor.getInt(cursor.getColumnIndex(ResourceContract._ID));
         cursor.close();
-		return res;
-	}
+        return res;
+    }
+
+    public static int getNameResourceId(SQLiteDatabase db, String name){
+
+        ResourceContract r = new ResourceContract(db);
+        Cursor cursor = r.getByName(name);
+
+        if(cursor.getCount()<1)
+            return -1;
+        cursor.moveToFirst();
+        int res = cursor.getInt(cursor.getColumnIndex(ResourceContract._ID));
+        cursor.close();
+        return res;
+    }
 
     public static String findResourceName(SQLiteDatabase db, DbHelper dbh, int id){
 		String code="select name from "+ ResourceContract.table+" where "+ ResourceContract._ID +"="+id+";";
@@ -403,7 +417,7 @@ public class DbQuery {
         if(table.equals(UpdateAccountContract.UpdateAccountEntry.TABLE_NAME)){
             db.delete(table, UpdateAccountContract.UpdateAccountEntry._ID+""+id, null);
         }
-		else if(table.equals(CycleEntry.TABLE_NAME)){
+		else if(table.equals(CycleContract.table)){
             db.delete(table, CycleEntry._ID+"="+id, null);
         }
 		else if(table.equals(ResourcePurchaseEntry.TABLE_NAME)){
@@ -456,7 +470,7 @@ public class DbQuery {
 	}
 
 	public static Cycle getCycle(SQLiteDatabase db,DbHelper dbh,int id){
-		String code="select * from "+CycleEntry.TABLE_NAME+" where "+CycleEntry._ID+"="+id+";";
+		String code="select * from "+CycleContract.table+" where "+CycleEntry._ID+"="+id+";";
 		Cursor cursor = db.rawQuery(code, null);
 		if(cursor.getCount() < 1)return null;
 		Cycle c = new Cycle();
@@ -595,7 +609,7 @@ public class DbQuery {
 
     //checks to see if there are any crop cycles or not
     public static boolean cyclesExist(SQLiteDatabase db){
-        String code="select COUNT(*) FROM "+CycleEntry.TABLE_NAME;
+        String code="select COUNT(*) FROM "+ CycleContract.table;
         boolean res = false;
         Cursor c=db.rawQuery(code,null);
         if(c.moveToFirst()) {

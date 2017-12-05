@@ -134,7 +134,7 @@ public class SalesCost extends BaseActivity {
                     cv.put(CycleContract.CycleEntry.CROPCYCLE_COSTPER, sellp);
                     final DbHelper dbh = new DbHelper(SalesCost.this);
                     final SQLiteDatabase db = dbh.getWritableDatabase();
-                    res = db.update(CycleContract.CycleEntry.TABLE_NAME, cv, CycleContract.CycleEntry._ID+"="+currCycle.getId(), null);
+                    res = db.update(CycleContract.table, cv, CycleContract.CycleEntry._ID+"="+currCycle.getId(), null);
                     db.close();
 
                     runOnUiThread(new Runnable() {

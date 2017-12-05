@@ -17,7 +17,7 @@ public class CycleResourceContract {
 			+CycleResourceEntry.CYCLE_RESOURCE_USECOST + " real" + COMMA_SEP
 			+CycleResourceEntry.CYCLE_RESOURCE_QUANTIFIER + TEXT_TYPE + COMMA_SEP
             +CycleResourceEntry.CYCLE_DATE_USED + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP" + COMMA_SEP
-			+"foreign key("+CycleResourceEntry.CYCLE_RESOURCE_CYCLEID+") references "+ CycleContract.CycleEntry.TABLE_NAME+"("+ CycleContract.CycleEntry._ID+"),"
+			+"foreign key("+CycleResourceEntry.CYCLE_RESOURCE_CYCLEID+") references "+ CycleContract.table+"("+ CycleContract.CycleEntry._ID+"),"
 			+"foreign key("+CycleResourceEntry.CYCLE_RESOURCE_PURCHASE_ID+") references "+ ResourcePurchaseContract.ResourcePurchaseEntry.TABLE_NAME+"("+ ResourcePurchaseContract.ResourcePurchaseEntry._ID+"))";
 		
 	

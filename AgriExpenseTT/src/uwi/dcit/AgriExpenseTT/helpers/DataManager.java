@@ -21,6 +21,7 @@ import uwi.dcit.AgriExpenseTT.models.ResourcePurchaseContract;
 //import uwi.dcit.agriexpensesvr.cycleApi.model.Cycle;
 //import uwi.dcit.agriexpensesvr.resourcePurchaseApi.model.ResourcePurchase;
 
+
 import uwi.dcit.agriexpensesvr.accountApi.model.Account;
 import uwi.dcit.agriexpensesvr.cycleApi.model.Cycle;
 import uwi.dcit.agriexpensesvr.resourcePurchaseApi.model.ResourcePurchase;
@@ -74,7 +75,7 @@ public class DataManager {
         DbQuery.updateAccount(db,time);
         if(acc!=null){
             //insert into transaction table
-            DbQuery.insertRedoLog(db, dbh, CycleContract.CycleEntry.TABLE_NAME, id, "ins");
+            DbQuery.insertRedoLog(db, dbh, CycleContract.table, id, "ins");
             //try insert into cloud
             if (acc.getSignedIn() == 1 && NetworkHelper.isWifiAvailable(this.context)) {
                 Log.i("IINNSSEERRTT", "Going to insert into cloud!");
@@ -158,12 +159,12 @@ public class DataManager {
             Cycle c = DbQuery.getCycle(db, dbh, l.getCycleid());
             ContentValues cv = new ContentValues();
             cv.put(CycleContract.CycleEntry.CROPCYCLE_TOTALSPENT, (c.getTotalSpent() - l.getUseCost()));
-            db.update(CycleContract.CycleEntry.TABLE_NAME, cv, CycleContract.CycleEntry._ID + "=" + l.getCycleid(), null);
+            db.update(CycleContract.table, cv, CycleContract.CycleEntry._ID + "=" + l.getCycleid(), null);
             //record transaction in log
-            tL.insertTransLog(CycleContract.CycleEntry.TABLE_NAME, l.getCycleid(), TransactionLog.TL_UPDATE);
+            tL.insertTransLog(CycleContract.table, l.getCycleid(), TransactionLog.TL_UPDATE);
             if (acc != null) {
                 //redo log (cloud)
-                DbQuery.insertRedoLog(db, dbh, CycleContract.CycleEntry.TABLE_NAME, l.getCycleid(), TransactionLog.TL_UPDATE);
+                DbQuery.insertRedoLog(db, dbh, CycleContract.table, l.getCycleid(), TransactionLog.TL_UPDATE);
                 if (acc.getSignedIn() == 1 && NetworkHelper.isWifiAvailable(this.context)) {
                     //NOTE
                     clo.updateCycle();
@@ -239,15 +240,15 @@ public class DataManager {
         //delete cycle
 //		db.delete(CycleContract.CycleEntry.TABLE_NAME, CycleContract.CycleEntry._ID+"="+c.getId(), null);
         try {
-            DbQuery.deleteRecord(db, dbh, CycleContract.CycleEntry.TABLE_NAME, c.getId());
+            DbQuery.deleteRecord(db, dbh, CycleContract.table, c.getId());
         }
         catch (Exception e){
             e.printStackTrace();
         }
-        tL.insertTransLog(CycleContract.CycleEntry.TABLE_NAME, c.getId(), TransactionLog.TL_DEL);
+        tL.insertTransLog(CycleContract.table, c.getId(), TransactionLog.TL_DEL);
         if(acc!=null){
             //insert into redo log (cloud)
-            DbQuery.insertRedoLog(db, dbh, CycleContract.CycleEntry.TABLE_NAME, c.getId(), TransactionLog.TL_DEL);
+            DbQuery.insertRedoLog(db, dbh, CycleContract.table, c.getId(), TransactionLog.TL_DEL);
             if (acc.getSignedIn() == 1 && NetworkHelper.isWifiAvailable(this.context)) {
                 CloudInterface cloud= new CloudInterface(context,db,dbh);//new CloudInterface(context);
                 cloud.deleteCycle();
@@ -323,15 +324,15 @@ public class DataManager {
     }
 
     public boolean updateCycle(LocalCycle c, ContentValues cv){
-        int result = db.update(CycleContract.CycleEntry.TABLE_NAME, cv, CycleContract.CycleEntry._ID+"="+c.getId(), null);
+        int result = db.update(CycleContract.table, cv, CycleContract.CycleEntry._ID+"="+c.getId(), null);
         //update the cloud
         TransactionLog tl = new TransactionLog(dbh, db,context);
-        tl.insertTransLog(CycleContract.CycleEntry.TABLE_NAME, c.getId(),TransactionLog.TL_UPDATE);
+        tl.insertTransLog(CycleContract.table, c.getId(),TransactionLog.TL_UPDATE);
         CloudInterface cloud= new CloudInterface(context,db,dbh);// new CloudInterface(context);
         long time = System.currentTimeMillis()/1000;
         DbQuery.updateAccount(db,time);
         if(acc!=null){
-            DbQuery.insertRedoLog(db, dbh, CycleContract.CycleEntry.TABLE_NAME, c.getId(), TransactionLog.TL_UPDATE);
+            DbQuery.insertRedoLog(db, dbh, CycleContract.table, c.getId(), TransactionLog.TL_UPDATE);
             //record in transaction log
             if (acc.getSignedIn() == 1 && NetworkHelper.isWifiAvailable(this.context)) {
                 cloud.updateCycle();
@@ -352,7 +353,8 @@ public class DataManager {
 
 //        db.delete(ResourceContract.ResourceEntry.TABLE_NAME, ResourceContract.ResourceEntry._ID+"="+resId, null);
 
-        db.delete(CycleContract.CycleEntry.TABLE_NAME, CycleContract.CycleEntry.CROPCYCLE_CROPID+"="+resId, null);
+        new CycleContract(db).delete(resId);
+
         Cursor cursor=db.rawQuery(code, null);
         if(cursor.getCount()<1)
             return;

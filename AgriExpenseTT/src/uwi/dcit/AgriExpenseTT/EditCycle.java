@@ -27,6 +27,7 @@ import uwi.dcit.AgriExpenseTT.helpers.DbHelper;
 import uwi.dcit.AgriExpenseTT.helpers.DbQuery;
 import uwi.dcit.AgriExpenseTT.helpers.GAnalyticsHelper;
 import uwi.dcit.AgriExpenseTT.helpers.TextHelper;
+import uwi.dcit.AgriExpenseTT.models.CycleContract;
 import uwi.dcit.AgriExpenseTT.models.CycleContract.CycleEntry;
 import uwi.dcit.AgriExpenseTT.models.LocalCycle;
 
@@ -153,13 +154,7 @@ public class EditCycle extends BaseActivity implements DatePickerDialog.OnDateSe
 		}
         name = TextHelper.formatUserText(et_name.getText().toString());
 
-		ContentValues cv = new ContentValues();
-		cv.put(CycleEntry.CROPCYCLE_CROPID, DbQuery.getNameResourceId(db, dbh, crop));
-        cv.put(CycleEntry.CROPCYCLE_RESOURCE, crop);
-		cv.put(CycleEntry.CROPCYCLE_LAND_TYPE,land);
-		cv.put(CycleEntry.CROPCYCLE_LAND_AMOUNT, landQty);
-		cv.put(CycleEntry.CROPCYCLE_DATE, date);
-        cv.put(CycleEntry.CROPCYCLE_NAME, name);
+		ContentValues cv = new CycleContract(db, crop, land, landQty, date, name).getContentValues();
 
 		Toast.makeText(getApplicationContext(),"Updating "+ " "+name+crop+" "+land+" "+landQty+" "+date, Toast.LENGTH_SHORT).show();
 
