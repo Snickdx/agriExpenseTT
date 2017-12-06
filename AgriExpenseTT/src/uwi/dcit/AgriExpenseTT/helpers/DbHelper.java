@@ -35,11 +35,6 @@ public class DbHelper extends SQLiteOpenHelper{
     private static final String TAG_NAME = "AgriExpenseDBHelper";
     private Context ctx;
 
-    private List<SQLiteDBModel> defaults;
-
-    private SQLiteModelFactory cf;
-
-
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null,VERSION);
@@ -181,17 +176,21 @@ public class DbHelper extends SQLiteOpenHelper{
     }
 
     private void createDb(SQLiteDatabase db) {
-        createResources(db);
         createCropCycle(db);
         createResourcePurchases(db);
         createResourceUse(db);
+
+
         createLabour(db);
-        createCloudKeys(db);
+
         createRedoLog(db);
         createTransactionLog(db);
         createUpdateAccount(db);
-        createCountries(db);
-        createCounties(db);
+
+        for (SQLiteDBModel model : SQLiteModelFactory.getInstance(db).contractTypes) {
+            model.init();
+        }
+
     }
 
     private void dropTables(SQLiteDatabase db) {
@@ -199,17 +198,16 @@ public class DbHelper extends SQLiteOpenHelper{
         db.execSQL(CycleResourceContract.SQL_DELETE_CYCLE_RESOURCE);
         db.execSQL(ResourcePurchaseContract.SQL_DELETE_RESOURCE_PURCHASE);
         db.execSQL(CycleContract.SQL_DELETE_CYCLE);
-
         db.execSQL(RedoLogContract.SQL_DELETE_REDO_LOG);
         db.execSQL(TransactionLogContract.SQL_DELETE_TRANSACTION_LOG);
         db.execSQL(UpdateAccountContract.SQL_DELETE_UPDATE_ACCOUNT);
         db.setTransactionSuccessful();
         db.endTransaction();
 
-        new CloudKeyContract(db).flush();
-        new ResourceContract(db).flush();
-        new CountryContract(db).flush();
-        new CountyContract(db).flush();
+        for (SQLiteDBModel model : SQLiteModelFactory.getInstance(db).contractTypes) {
+            model.flush();
+        }
+
     }
 
     private boolean columnExists(SQLiteDatabase db, String tableName, String columnName){
@@ -229,14 +227,14 @@ public class DbHelper extends SQLiteOpenHelper{
 
     private void createUpdateAccount(SQLiteDatabase db){db.execSQL(UpdateAccountContract.SQL_CREATE_UPDATE_ACCOUNT);}
 
-    private void createCloudKeys(SQLiteDatabase db) {
-        new CloudKeyContract(db).init();
-    }
 
     private void createCropCycle(SQLiteDatabase db) {
         db.execSQL(CycleContract.SQL_CREATE_CYCLE);
     }
 
+    private void createRedoLog(SQLiteDatabase db) {
+        db.execSQL(RedoLogContract.SQL_CREATE_REDO_LOG);
+    }
 
     private void createTransactionLog(SQLiteDatabase db) {db.execSQL(TransactionLogContract.SQL_CREATE_TRANSACTION_LOG);}
 
@@ -244,16 +242,10 @@ public class DbHelper extends SQLiteOpenHelper{
 
     private void createResourceUse(SQLiteDatabase db) {db.execSQL(CycleResourceContract.SQL_CREATE_CYCLE_RESOURCE);}
 
-    private void createRedoLog(SQLiteDatabase db) {
-        db.execSQL(RedoLogContract.SQL_CREATE_REDO_LOG);
-    }
-
-    private void createResources(SQLiteDatabase db) {
-        new ResourceContract(db).init();
-    }
 
     private void createCountries(SQLiteDatabase db) {
-        new CountryContract(db).init();}
+        new CountryContract(db).init();
+    }
 
     private void createCounties(SQLiteDatabase db) {
         new CountyContract(db).init();
@@ -265,34 +257,11 @@ public class DbHelper extends SQLiteOpenHelper{
 
 
 
+
+
     //******************************* Insert Default Values
 
-//    private void addDefaults(){
-//
-//
-//        defaults.add(cf.createContract("Fertilizer","Fersan (7.12.40 + 1TEM)"));
-//        defaults.add(cf.createContract("Fertilizer","Magic Grow (7.12.40 + TE HYDROPHONIC)"));
-//        defaults.add(cf.createContract("Fertilizer","Hydro YARA Liva (15.0.15)"));
-//        defaults.add(cf.createContract("Fertilizer","Techni - Grow (7.12.27 + TE)"));
-//        defaults.add(cf.createContract("Fertilizer","Ferqidd (10.13.32 + TE)"));
-//        defaults.add(cf.createContract("Fertilizer","Plant Prod (7.12.27 + TE)"));
-//        defaults.add(cf.createContract("Fertilizer","Flower Plus (9.18.36 + TE)"));
-//        defaults.add(cf.createContract("Fertilizer","Iron Chelate Powder (FE - EDTA)"));
-//        defaults.add(cf.createContract("Fertilizer","Magnesium Sulphate (Mg SO4)"));
-//        defaults.add(cf.createContract("Fertilizer","12-24-12 FERTILIZER"));
-//        defaults.add(cf.createContract("Fertilizer","HARVEST MORE 10-55-10"));
-//        defaults.add(cf.createContract("Fertilizer","HARVEST MORE 13-0-44"));
-//        defaults.add(cf.createContract("Fertilizer","HARVEST MORE 5-5-45"));
-//        defaults.add(cf.createContract("Fertilizer","NPK 12-12-17"));
-//        defaults.add(cf.createContract("Fertilizer","UREA 46-0-0"));
-//        defaults.add(cf.createContract("Fertilizer","PLANT BOOSTER"));
-//        defaults.add(cf.createContract("Fertilizer","MIRACLE GRO ALL PROPOSE PLANT FOOD"));
-//        defaults.add(cf.createContract("Fertilizer","SCOTTS FLOWER AND VEGETABLE PLANT FOOD"));
-//
-//
-//
-//
-//    }
+
 
 
     private void insertDefaultCrops(SQLiteDatabase db) {
@@ -325,7 +294,6 @@ public class DbHelper extends SQLiteOpenHelper{
         DbQuery.insertResource(db, this, DHelper.cat_fertilizer, "MIRACLE GRO ALL PROPOSE PLANT FOOD");
         DbQuery.insertResource(db, this, DHelper.cat_fertilizer, "SCOTTS FLOWER AND VEGETABLE PLANT FOOD");
     }
-
     private void insertDefaultSoilAdds(SQLiteDatabase db) {
         //soil amendments -Plant Doctors tt
         DbQuery.insertResource(db, this, DHelper.cat_soilAmendment, "Cow manure");
@@ -339,7 +307,6 @@ public class DbHelper extends SQLiteOpenHelper{
         DbQuery.insertResource(db, this, DHelper.cat_soilAmendment, "Calphos");
         DbQuery.insertResource(db, this, DHelper.cat_soilAmendment, "Sharp sand");
     }
-
     private void insertDefaultChemicals(SQLiteDatabase db) {
         //chemical --http://en.wikipedia.org/wiki/Pesticide#Classified_by_type_of_pest
         DbQuery.insertResource(db, this, DHelper.cat_chemical, "Fungicide");
@@ -395,12 +362,19 @@ public class DbHelper extends SQLiteOpenHelper{
     }
 
     private void populate(SQLiteDatabase db, TransactionLog tL) {
+
+        SQLiteModelFactory factory = SQLiteModelFactory.getInstance(db);
+
         insertDefaultCrops(db);
-        insertDefaultFertilizers(db);
-        insertDefaultSoilAdds(db);
-        insertDefaultChemicals(db);
         insertDefaultCountries(db);
         insertDefaultCounties(db);
+        insertDefaultSoilAdds(db);
+        insertDefaultFertilizers(db);
+
+        for (SQLiteDBModel model : factory.getDefaults(db)) {
+            model.insert();
+        }
+
     }
 
 
