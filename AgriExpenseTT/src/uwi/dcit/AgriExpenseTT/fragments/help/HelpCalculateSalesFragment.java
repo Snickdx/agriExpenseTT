@@ -13,12 +13,5 @@ public class HelpCalculateSalesFragment extends HelpMenuItem {//Fragment {
         view =  inflater.inflate(R.layout.fragment_help_article_view, container, false);
         return view;
     }
-    public void addToHelpList(){
-        getFragmentManager()
-                .beginTransaction()
-                .replace(R.id.help_lists, this)
-                .addToBackStack("Help List")
-                .commit();
-    }
 
 }

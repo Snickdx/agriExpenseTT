@@ -54,11 +54,5 @@ public class HelpNewPurchaseFragment extends HelpMenuItem {//Fragment {
 		
 		return view;
 	}
-	public void addToHelpList(){
-		getFragmentManager()
-				.beginTransaction()
-				.replace(R.id.help_lists, this)
-				.addToBackStack("Help List")
-				.commit();
-	}
+
 }

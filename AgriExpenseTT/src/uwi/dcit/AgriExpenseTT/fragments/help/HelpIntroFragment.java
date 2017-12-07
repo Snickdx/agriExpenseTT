@@ -36,18 +36,7 @@ public class HelpIntroFragment extends HelpMenuItem {//Fragment{
         GAnalyticsHelper.getInstance(this.getActivity()).sendScreenView("Help Intro Fragment");
 		return view;
 	}
-	public void addToHelpList(){
 
-
-
-		FragmentManager manager = getActivity().getSupportFragmentManager();
-//		 getFragmentManager()
-		manager.beginTransaction()
-				.replace(R.id.help_lists, this)
-				.addToBackStack("Help List")
-				.commitNow();
-
-	}
 	@Override
     public void onStart() {
 		super.onStart();

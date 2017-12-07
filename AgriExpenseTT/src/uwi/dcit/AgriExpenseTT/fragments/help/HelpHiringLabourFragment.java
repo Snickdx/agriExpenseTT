@@ -59,11 +59,5 @@ public class HelpHiringLabourFragment extends HelpMenuItem {//Fragment {
         GAnalyticsHelper.getInstance(this.getActivity()).sendScreenView("Help Hiring Labour Fragment");
 		return view;
 	}
-	public void addToHelpList(){
-		getFragmentManager()
-				.beginTransaction()
-				.replace(R.id.help_lists, this)
-				.addToBackStack("Help List")
-				.commit();
-	}
+
 }
