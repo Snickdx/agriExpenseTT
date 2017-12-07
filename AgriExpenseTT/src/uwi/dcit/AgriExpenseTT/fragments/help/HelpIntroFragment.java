@@ -21,33 +21,12 @@ public class HelpIntroFragment extends HelpMenuItem {//Fragment{
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		view =  inflater.inflate(R.layout.fragment_help_article_view, container, false);
-		
-		TextView txtHeading = (TextView)view.findViewById(R.id.article_heading);
-		txtHeading.setText("Introduction To David Edit 6");
-		
-		ImageView img = (ImageView)view.findViewById(R.id.article_image);
-//		img.setImageDrawable(getResources().getDrawable(R.drawable.help_homescreen));
-		img.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.help_homescreen, null));
-
-		
-		TextView txtContent = (TextView)view.findViewById(R.id.article_text);
-		txtContent.setText(getResources().getString(R.string.help_intro));
-
+		ContextForContent context_fc = new ContextForContent(new OperationAddIntroContent());
+		context_fc.executeStrategy(view);
         GAnalyticsHelper.getInstance(this.getActivity()).sendScreenView("Help Intro Fragment");
 		return view;
 	}
-	public void addToHelpList(){
 
-
-
-		FragmentManager manager = getActivity().getSupportFragmentManager();
-//		 getFragmentManager()
-		manager.beginTransaction()
-				.replace(R.id.help_lists, this)
-				.addToBackStack("Help List")
-				.commitNow();
-
-	}
 	@Override
     public void onStart() {
 		super.onStart();
