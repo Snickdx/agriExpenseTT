@@ -1,5 +1,7 @@
 package uwi.dcit.AgriExpenseTT.fragments.help;
 
+import android.content.Context;
+
 /**
  * Created by DavidCharles on 12/2/2017.
  */
@@ -12,8 +14,9 @@ public class HelpMenuItemFactory {
             return new HelpIntroFragment();
         if(position==1)
             return new HelpNewPurchaseFragment();
-        if(position==2)
+        if(position==2){
             return  new HelpNewCropCycleFragment();
+        }
         if(position==3)
             return new HelpManageResourceFragment();
         if(position==4)

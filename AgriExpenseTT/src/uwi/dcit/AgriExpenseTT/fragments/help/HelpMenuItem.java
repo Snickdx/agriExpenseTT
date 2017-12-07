@@ -15,5 +15,5 @@ import android.support.v4.app.Fragment;
 public abstract class HelpMenuItem extends Fragment {
 
     public abstract View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState);
-    public abstract void addToHelpList();
+
 }

@@ -50,14 +50,8 @@ public class HelpManageResourceFragment extends HelpMenuItem {//Fragment {
 		TextView txt4 = (TextView)view.findViewById(R.id.article_text_4);
 		txt4.setText(getResources().getString(R.string.help_manage_resources_4));
 
-        GAnalyticsHelper.getInstance(this.getActivity()).sendScreenView("Help Manage Resources Fragment");
+        GAnalyticsHelper.getInstance(this.getActivity()).sendScreenView("Help Manage Resources Fragment");//https://developers.google.com/analytics/devguides/collection/android/v4/screens
 		return view;
 	}
-	public void addToHelpList(){
-		getFragmentManager()
-				.beginTransaction()
-				.replace(R.id.help_lists, this)
-				.addToBackStack("Help List")
-				.commit();
-	}
+
 }
